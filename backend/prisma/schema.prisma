@@ -12,15 +12,6 @@ datasource db {
   provider = "postgresql"
 }
 
-model UserProfile {
-  user_profile_id String @id @default(uuid())
-  user_id         String
-  User            User   @relation(fields: [user_id], references: [user_id])
-  createdAt       DateTime @default(now())
-
-  @@map("user_profiles")
-}
-
 model User {
   user_id       String         @id @default(uuid())
   email         String         @unique
@@ -30,7 +21,32 @@ model User {
   status        Boolean        @default(true)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
   UserProfile   UserProfile[]
+  Writer        Writer?                    // one-to-one (optional)
 
   @@map("users")
+}
+
+model Writer {
+  writer_id  String   @id @default(uuid())
+  user_id    String   @unique                // each user can be a writer only once
+  bio        String?
+  avatar     String?
+  website    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [user_id], references: [user_id])
+  @@map("writers")
+}
+
+// UserProfile remains unchanged
+model UserProfile {
+  user_profile_id String   @id @default(uuid())
+  user_id         String
+  User            User     @relation(fields: [user_id], references: [user_id])
+  createdAt       DateTime @default(now())
+
+  @@map("user_profiles")
 }
