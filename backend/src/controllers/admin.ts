@@ -6,7 +6,6 @@ import {
   getWriter as getWriterService,
 } from "@/database/services/writer.js";
 
-import { findUserById } from "@/database/services/user.js";
 import { findWriterByUserId } from "@/database/services/writer.js";
 
 const createWriter = async (
@@ -54,6 +53,7 @@ const getWriter = async (req: Request, res: Response): Promise<Response> => {
     }
 
     const writer = await findWriterByUserId(userId);
+
     if (!writer) {
       return res.status(404).json({ error: "Writer not found." });
     }
@@ -110,3 +110,5 @@ const deleteWriter = async (req: Request, res: Response): Promise<Response> => {
     return res.status(500).json({ error: "Internal server error." });
   }
 };
+
+export { getWriter };
