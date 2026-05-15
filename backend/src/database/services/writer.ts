@@ -45,10 +45,26 @@ const updateWriter = async (
   });
 };
 
+const findWriterByUserId = async (user_id: string): Promise<Writer | null> => {
+  if (!user_id) {
+    console.log("user id unefined");
+  }
+  return await prisma.writer.findUnique({
+    where: { user_id },
+  });
+};
+
 const deleteWriter = async (writerId: string): Promise<Writer> => {
   return await prisma.writer.delete({
     where: { writer_id: writerId },
   });
 };
 
-export { createWriter, getWriter, getAllWriters, updateWriter, deleteWriter };
+export {
+  createWriter,
+  getWriter,
+  getAllWriters,
+  updateWriter,
+  deleteWriter,
+  findWriterByUserId,
+};

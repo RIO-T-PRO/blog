@@ -1,10 +1,10 @@
-import type { writer, user } from "@prisma/client";
+import { User, Writer } from "@/generated/prisma/client.ts";
 
 declare global {
   namespace Express {
     interface Request {
-      user: user;
-      writer: writer;
+      user: User;
+      writer: Writer;
     }
   }
 }
