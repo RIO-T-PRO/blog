@@ -1,12 +1,10 @@
-import {
-  createWriter,
-  updateWriter,
-  deleteWriter,
-} from "@/controllers/writer.js";
-import express from "express";
+import { Router } from "express";
+import { authMiddleware } from "@/middlewares/auth.js";
+import { writerMiddleware } from "@/middlewares/writer.js";
+import { updateWriter } from "@/controllers/writer.js";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/writer", createWriter);
-router.put("/writer/:writerId", updateWriter);
-router.delete("/writer/:writerId", deleteWriter);
+router.put("/", authMiddleware, writerMiddleware, updateWriter);
+
+export default router;
