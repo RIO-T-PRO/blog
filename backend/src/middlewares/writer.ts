@@ -13,7 +13,6 @@ export const writerMiddleware = async (
 
   try {
     const writer = await findWriterByUserId(req.user.user_id);
-    console.log("writer is undefined", writer);
 
     if (!writer) {
       res.status(403).json({ error: "User does not exist" });

@@ -38,10 +38,10 @@ model Writer {
   updatedAt  DateTime @updatedAt
 
   user       User     @relation(fields: [user_id], references: [user_id])
+  posts      Post[] 
   @@map("writers")
 }
 
-// UserProfile remains unchanged
 model UserProfile {
   user_profile_id String   @id @default(uuid())
   user_id         String
@@ -49,4 +49,25 @@ model UserProfile {
   createdAt       DateTime @default(now())
 
   @@map("user_profiles")
+}
+
+
+model Post {
+  post_id     String   @id @default(uuid())
+  title       String
+  slug        String   @unique         // readable URL part, e.g. "my-first-post"
+  excerpt     String?                  // short summary
+  content     String   @db.Text        // full blog content (markdown or HTML)
+  cover_image String?                  // optional cover image URL
+  published   Boolean  @default(false) // draft vs published
+  publishedAt DateTime?                // when first published
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  writer_id   String
+  writer      Writer   @relation(fields: [writer_id], references: [writer_id])
+
+  @@index([published])
+  @@index([createdAt])
+  @@map("posts")
 }
