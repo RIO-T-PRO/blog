@@ -10,8 +10,8 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
-app.use("/api/writer", writerRoutes);
+app.use("/auth", authRoutes);
+app.use("/writer", writerRoutes);
 
 const PORT = process.env.PORT || 3000;
 
