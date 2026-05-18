@@ -1,4 +1,3 @@
-// post.service.ts
 import { prisma } from "@/database/db.js";
 import { Post } from "@/generated/prisma/client.js";
 
@@ -18,13 +17,13 @@ const getUniqueSlug = async (baseSlug: string): Promise<string> => {
   return uniqueSlug;
 };
 
-const findPostById = async (postId: string): Promise<Post | null> => {
+export const findPostById = async (postId: string): Promise<Post | null> => {
   return prisma.post.findUnique({
     where: { post_id: postId },
   });
 };
 
-const createPost = async (data: {
+export const createPost = async (data: {
   title: string;
   slug?: string;
   excerpt?: string;
@@ -56,7 +55,7 @@ const createPost = async (data: {
   });
 };
 
-const updatePost = async (
+export const updatePost = async (
   postId: string,
   data: {
     title?: string;
@@ -66,10 +65,14 @@ const updatePost = async (
     cover_image?: string | null;
     published?: boolean;
   },
-  existingPost: Post,
 ): Promise<Post> => {
-  let updatedSlug = data.slug;
+  const existingPost = await findPostById(postId);
 
+  if (!existingPost) {
+    throw new Error("Post not found");
+  }
+
+  let updatedSlug = data.slug;
   if (data.slug && data.slug !== existingPost.slug) {
     updatedSlug = await getUniqueSlug(data.slug);
   }
@@ -96,10 +99,13 @@ const updatePost = async (
   });
 };
 
-const deletePost = async (postId: string): Promise<void> => {
+export const deletePost = async (postId: string): Promise<void> => {
+  const existingPost = await findPostById(postId);
+
+  if (!existingPost) {
+    throw new Error("Post not found");
+  }
   await prisma.post.delete({
     where: { post_id: postId },
   });
 };
-
-export { findPostById, createPost, updatePost, deletePost };

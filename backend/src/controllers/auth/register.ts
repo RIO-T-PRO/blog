@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { findUserByEmail, createUser } from "@/database/services/user.js";
 import { generateSalt, hashPassword } from "@/utils/password.js";
 import { generateToken } from "@/utils/token.js";
+import { errorResponse } from "@/utils/api-response.js";
 
 export const register = async (
   req: Request,
@@ -11,22 +12,17 @@ export const register = async (
     const { fullName, email, password } = req.body;
 
     if (!fullName || !email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Please fill all required fields" });
+      return errorResponse(res, 400, "Please fill all required fields");
     }
 
-    // Check existing user (pure DB service)
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return errorResponse(res, 400, "User already exists");
     }
 
-    // Hash password (using utilities)
     const salt = await generateSalt();
     const hashedPassword = await hashPassword(password, salt);
 
-    // Create user (pure DB service)
     const newUser = await createUser({
       fullname: fullName,
       email,
@@ -34,7 +30,6 @@ export const register = async (
       salt,
     });
 
-    // Generate token (utility)
     const token = generateToken({
       userId: newUser.user_id,
       email: newUser.email,
@@ -51,6 +46,6 @@ export const register = async (
     });
   } catch (error) {
     console.error("Registration error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return errorResponse(res, 500, "Internal server error");
   }
 };

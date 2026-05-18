@@ -5,8 +5,8 @@ import {
   deleteWriter as deleteWriterService,
   getWriter as getWriterService,
 } from "@/database/services/writer.js";
-
 import { findWriterByUserId } from "@/database/services/writer.js";
+import { errorResponse } from "@/utils/api-response.js";
 
 const createWriter = async (
   req: Request,
@@ -16,15 +16,17 @@ const createWriter = async (
     const userId = req.user?.user_id;
 
     if (!userId) {
-      return res.status(401).json({ error: "Authentication required." });
+      return errorResponse(res, 401, "Authentication required.");
     }
 
     const { bio, avatar, website } = req.body;
 
     if (!bio && !avatar && !website) {
-      return res.status(400).json({
-        error: "At least one field (bio, avatar, website) is required.",
-      });
+      return errorResponse(
+        res,
+        400,
+        "At least one field (bio, avatar, website) is required.",
+      );
     }
 
     const newWriter = await createWriterService({
@@ -40,7 +42,7 @@ const createWriter = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Internal server error." });
+    return errorResponse(res, 500, "Internal server error.");
   }
 };
 
@@ -49,19 +51,19 @@ const getWriter = async (req: Request, res: Response): Promise<Response> => {
     const { userId } = req.params;
 
     if (!userId || typeof userId !== "string") {
-      return res.status(400).json({ error: "User ID is required." });
+      return errorResponse(res, 400, "User ID is required.");
     }
 
     const writer = await findWriterByUserId(userId);
 
     if (!writer) {
-      return res.status(404).json({ error: "Writer not found." });
+      return errorResponse(res, 404, "Writer not found.");
     }
 
     return res.status(200).json({ writer });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Internal server error." });
+    return errorResponse(res, 500, "Internal server error.");
   }
 };
 
@@ -74,31 +76,26 @@ const getAllWriters = async (
     return res.status(200).json({ writers });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Internal server error." });
+    return errorResponse(res, 500, "Internal server error.");
   }
 };
 
 const deleteWriter = async (req: Request, res: Response): Promise<Response> => {
   try {
     const userId = req.user?.user_id;
-    const writerId = req.writer?.writer_id;
+    const { writerId } = req.params;
 
     if (!userId) {
-      return res.status(401).json({ error: "Authentication required." });
+      return errorResponse(res, 401, "Authentication required.");
     }
 
-    if (!writerId) {
-      return res.status(400).json({ error: "Writer ID is required." });
+    if (!writerId || typeof writerId !== "string") {
+      return errorResponse(res, 400, "Writer ID is required.");
     }
 
     const existingWriter = await getWriterService(writerId);
     if (!existingWriter) {
-      return res.status(404).json({ error: "Writer profile not found." });
-    }
-    if (existingWriter.user_id !== userId) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorized to delete this profile." });
+      return errorResponse(res, 404, "Writer profile not found.");
     }
 
     await deleteWriterService(writerId);
@@ -107,7 +104,7 @@ const deleteWriter = async (req: Request, res: Response): Promise<Response> => {
       .json({ message: "Writer profile deleted successfully." });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Internal server error." });
+    return errorResponse(res, 500, "Internal server error.");
   }
 };
 
