@@ -108,4 +108,4 @@ const deleteWriter = async (req: Request, res: Response): Promise<Response> => {
   }
 };
 
-export { getWriter };
+export { createWriter, getWriter, getAllWriters, deleteWriter };
