@@ -13,61 +13,98 @@ datasource db {
 }
 
 model User {
-  user_id       String         @id @default(uuid())
-  email         String         @unique
-  fullname      String
-  password      String
-  salt          String
-  status        Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  user_id   String   @id @default(uuid())
+  email     String   @unique
+  fullname  String
+  password  String
+  salt      String
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  UserProfile   UserProfile[]
-  Writer        Writer?                    // one-to-one (optional)
+  userProfile UserProfile?
+  writer      Writer?
+  admin       Admin?
+  comments    Comment[]
 
   @@map("users")
 }
 
-model Writer {
-  writer_id  String   @id @default(uuid())
-  user_id    String   @unique                // each user can be a writer only once
-  bio        String?
-  avatar     String?
-  website    String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user       User     @relation(fields: [user_id], references: [user_id])
-  posts      Post[] 
-  @@map("writers")
-}
-
 model UserProfile {
   user_profile_id String   @id @default(uuid())
-  user_id         String
-  User            User     @relation(fields: [user_id], references: [user_id])
+  user_id         String   @unique 
+  bio             String?
+  avatar          String?
   createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [user_id], references: [user_id])
 
   @@map("user_profiles")
 }
 
+model Writer {
+  writer_id String   @id @default(uuid())
+  user_id   String   @unique // each user can be a writer only once
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [user_id], references: [user_id])
+  posts     Post[]   
+
+  @@map("writers")
+}
 
 model Post {
   post_id     String   @id @default(uuid())
   title       String
-  slug        String   @unique         // readable URL part, e.g. "my-first-post"
-  excerpt     String?                  // short summary
-  content     String   @db.Text        // full blog content (markdown or HTML)
-  cover_image String?                  // optional cover image URL
+  slug        String   @unique // readable URL part
+  excerpt     String?          
+  content     String   @db.Text 
+  cover_image String?           
   published   Boolean  @default(false) // draft vs published
-  publishedAt DateTime?                // when first published
+  publishedAt DateTime?         // when first published
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   writer_id   String
   writer      Writer   @relation(fields: [writer_id], references: [writer_id])
+  comments    Comment[] 
 
   @@index([published])
   @@index([createdAt])
   @@map("posts")
+}
+
+model Comment {
+  comment_id String   @id @default(uuid())
+  content    String   @db.Text
+  status     String   @default("pending") 
+  
+  post_id    String
+  post       Post     @relation(fields: [post_id], references: [post_id])
+  
+  user_id    String   // who wrote the comment (normal user, writer, or even admin)
+  user       User     @relation(fields: [user_id], references: [user_id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([post_id])
+  @@index([user_id])
+  @@index([status])
+  @@map("comments")
+}
+
+model Admin {
+  admin_id  String   @id @default(uuid())
+  user_id   String   @unique 
+  role      String   @default("ADMIN") // e.g., "SUPERADMIN", "MODERATOR" – customize as needed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [user_id], references: [user_id])
+
+  @@map("admins")
 }

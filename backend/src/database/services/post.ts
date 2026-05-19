@@ -17,13 +17,13 @@ const getUniqueSlug = async (baseSlug: string): Promise<string> => {
   return uniqueSlug;
 };
 
-export const findPostById = async (postId: string): Promise<Post | null> => {
+const findPostById = async (postId: string): Promise<Post | null> => {
   return prisma.post.findUnique({
     where: { post_id: postId },
   });
 };
 
-export const createPost = async (data: {
+const createPost = async (data: {
   title: string;
   slug?: string;
   excerpt?: string;
@@ -55,7 +55,7 @@ export const createPost = async (data: {
   });
 };
 
-export const updatePost = async (
+const updatePost = async (
   postId: string,
   data: {
     title?: string;
@@ -99,7 +99,7 @@ export const updatePost = async (
   });
 };
 
-export const deletePost = async (postId: string): Promise<void> => {
+const deletePost = async (postId: string): Promise<void> => {
   const existingPost = await findPostById(postId);
 
   if (!existingPost) {
@@ -109,3 +109,45 @@ export const deletePost = async (postId: string): Promise<void> => {
     where: { post_id: postId },
   });
 };
+
+const getPosts = async (options: {
+  page: number;
+  limit: number;
+  writerId?: string;
+  published?: boolean;
+}) => {
+  const { page, limit, writerId, published } = options;
+
+  const where: any = {};
+  if (writerId) {
+    where.writer_id = writerId;
+  }
+  if (typeof published === "boolean") {
+    where.published = published;
+  }
+
+  const total = await prisma.post.count({ where });
+  const posts = await prisma.post.findMany({
+    where,
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: { createdAt: "desc" },
+    include: {
+      writer: {
+        include: { user: true },
+      },
+    },
+  });
+
+  return {
+    posts,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
+export { findPostById, createPost, updatePost, deletePost, getPosts };

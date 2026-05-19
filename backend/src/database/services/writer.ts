@@ -1,5 +1,5 @@
 import { prisma } from "@/database/db.js";
-import { Writer } from "@/generated/prisma/client.js";
+import { Writer, Post, User } from "@/generated/prisma/client.js";
 
 const createWriter = async (data: {
   userId: string;
@@ -23,8 +23,32 @@ const getWriter = async (writerId: string): Promise<Writer | null> => {
   });
 };
 
-const getAllWriters = async (): Promise<Writer[]> => {
-  return await prisma.writer.findMany();
+const findWriterByUserId = async (user_id: string): Promise<Writer | null> => {
+  return await prisma.writer.findUnique({
+    where: { user_id },
+  });
+};
+
+const getWriterWithPost = async (
+  writerId: string,
+): Promise<(Writer & { user: User; posts: Post[] }) | null> => {
+  return await prisma.writer.findUnique({
+    where: { writer_id: writerId },
+    include: {
+      user: true,
+      posts: {
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+};
+
+const getAllWriters = async () => {
+  return await prisma.writer.findMany({
+    include: {
+      user: true,
+    },
+  });
 };
 
 const updateWriter = async (
@@ -37,20 +61,7 @@ const updateWriter = async (
 ): Promise<Writer> => {
   return await prisma.writer.update({
     where: { writer_id: writerId },
-    data: {
-      bio: data.bio,
-      avatar: data.avatar,
-      website: data.website,
-    },
-  });
-};
-
-const findWriterByUserId = async (user_id: string): Promise<Writer | null> => {
-  if (!user_id) {
-    console.log("user id unefined");
-  }
-  return await prisma.writer.findUnique({
-    where: { user_id },
+    data,
   });
 };
 
@@ -63,7 +74,8 @@ const deleteWriter = async (writerId: string): Promise<Writer> => {
 export {
   createWriter,
   getWriter,
-  getAllWriters,
+  getWriterWithPost, // full join
+  getAllWriters, // all writers with joins
   updateWriter,
   deleteWriter,
   findWriterByUserId,
