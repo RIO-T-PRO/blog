@@ -18,6 +18,7 @@ const createPost = async (req: Request, res: Response): Promise<Response> => {
     return errorResponse(res, 403, "You are not registered as a writer.");
 
   const { title, slug, excerpt, content, cover_image, published } = req.body;
+
   if (!title || !content)
     return errorResponse(res, 400, "Title and content are required.");
 
