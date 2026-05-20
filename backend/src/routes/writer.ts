@@ -1,17 +1,20 @@
 import { Router } from "express";
+import {
+  createWriter,
+  updateWriter,
+  deleteWriter,
+  getWriter,
+} from "@/controllers/writer.js";
 import { authMiddleware } from "@/middlewares/auth.js";
-import { createPost } from "@/controllers/writer.js";
-import { getWriter } from "@/controllers/admin.js";
 
 const router = Router();
 
-// Writer profile
-router.get("/:userId", getWriter);
-// router.put("/update", authMiddleware, updateWriter);
+router.get("/:writer_id", getWriter);
 
-// Posts
-// router.post("/post/create", authMiddleware, createPost);
-// router.put("/post/update/:post_id", authMiddleware, updatePost);
-// router.delete("/post/delete/:post_id", authMiddleware, deletePost);
+router.put("/", authMiddleware, updateWriter);
+
+// admin only
+router.post("/user_id", authMiddleware, createWriter);
+router.delete("/:user_id", authMiddleware, deleteWriter);
 
 export default router;
