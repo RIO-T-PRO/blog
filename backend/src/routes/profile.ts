@@ -6,13 +6,40 @@ import {
   getUserProfile,
 } from "@/controllers/profile.js";
 import { authMiddleware } from "@/middlewares/auth.js";
+import { verifyProfile } from "@/middlewares/verify-profile.js";
+import { validate } from "@/middlewares/validate.js";
+import {
+  createProfileBodySchema,
+  profileIdParamSchema,
+  updateProfileBodySchema,
+} from "@/schemas/profile.js";
 
 const router = Router();
 
-router.get("/:profile_id", authMiddleware, getUserProfile);
+router.use(authMiddleware);
 
-router.post("/", authMiddleware, createUserProfile);
-router.put("/:profile_id", authMiddleware, updateUserProfile);
-router.delete("/:profile_id", authMiddleware, deleteUserProfile);
+router.post("/", validate(createProfileBodySchema, "body"), createUserProfile);
+
+router.get(
+  "/:profile_id",
+  validate(profileIdParamSchema, "params"),
+  verifyProfile,
+  getUserProfile,
+);
+
+router.put(
+  "/:profile_id",
+  validate(updateProfileBodySchema, "body"),
+  validate(profileIdParamSchema, "params"),
+  verifyProfile,
+  updateUserProfile,
+);
+
+router.delete(
+  "/:profile_id",
+  validate(profileIdParamSchema, "params"),
+  verifyProfile,
+  deleteUserProfile,
+);
 
 export default router;
