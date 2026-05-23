@@ -1,4 +1,11 @@
 import { Router } from "express";
+import { validate } from "@/middlewares/validate.js";
+import {
+  commentIdParamSchema,
+  createCommentBodySchema,
+  updateCommentBodySchema,
+} from "@/schemas/comment.js";
+import { commentPermissions } from "@/middlewares/verify-comment.js";
 import {
   createComment,
   updateComment,
@@ -9,10 +16,33 @@ import { authMiddleware } from "@/middlewares/auth.js";
 
 const router = Router();
 
-router.get("/:comment_id", authMiddleware, getComment);
+router.use(authMiddleware);
 
-router.post("/", authMiddleware, createComment);
-router.put("/:comment_id", authMiddleware, updateComment);
-router.delete("/:comment_id", authMiddleware, deleteComment);
+router.post(
+  "/comments",
+  validate(createCommentBodySchema, "body"),
+  createComment,
+);
+
+router.get(
+  "/comments/:comment_id",
+  validate(commentIdParamSchema, "params"),
+  commentPermissions,
+  getComment,
+);
+
+router.put(
+  "/comments/:comment_id",
+  validate(commentIdParamSchema, "params"),
+  validate(updateCommentBodySchema, "body"),
+  commentPermissions,
+  updateComment,
+);
+router.delete(
+  "/comments/:comment_id",
+  validate(commentIdParamSchema, "params"),
+  commentPermissions,
+  deleteComment,
+);
 
 export default router;

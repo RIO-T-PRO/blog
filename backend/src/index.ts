@@ -7,6 +7,7 @@ import commentRoutes from "@/routes/comment.js";
 import postRoutes from "@/routes/post.js";
 import adminRoutes from "@/routes/admin.js";
 import userProfileRoutes from "@/routes/profile.js";
+import userRoutes from "@/routes/user.js";
 
 dotenv.config();
 
@@ -16,9 +17,10 @@ app.use(express.json());
 
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
-app.use("/profile", userProfileRoutes);
 app.use("/writer", writerRoutes);
-app.use("/post", postRoutes);
+app.use("/user", userRoutes);
+app.use("/profile", userProfileRoutes);
+app.use("/posts", postRoutes);
 app.use("/comment", commentRoutes);
 
 const PORT = process.env.PORT || 3000;

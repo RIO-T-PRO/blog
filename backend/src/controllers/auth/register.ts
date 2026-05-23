@@ -1,24 +1,19 @@
 import { Request, Response } from "express";
-import { findUserByEmail, createUser } from "@/database/services/user.js";
+import { createUser, findUserByEmail } from "@/database/services/user.js";
 import { generateSalt, hashPassword } from "@/utils/password.js";
 import { generateToken } from "@/utils/token.js";
-import { errorResponse } from "@/utils/api-response.js";
+import { RegisterBody } from "@/schemas/auth.js";
 
 export const register = async (
   req: Request,
   res: Response,
 ): Promise<void | Response> => {
   try {
-    const { fullName, email, password } = req.body;
-
-    if (!fullName || !email || !password) {
-      return errorResponse(res, 400, "Please fill all required fields");
-    }
+    const { fullName, email, password } = req.body as RegisterBody;
 
     const existingUser = await findUserByEmail(email);
-    if (existingUser) {
-      return errorResponse(res, 400, "User already exists");
-    }
+    if (existingUser)
+      return res.status(400).json({ error: "User already exists" });
 
     const salt = await generateSalt();
     const hashedPassword = await hashPassword(password, salt);
@@ -46,6 +41,6 @@ export const register = async (
     });
   } catch (error) {
     console.error("Registration error:", error);
-    return errorResponse(res, 500, "Internal server error");
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
