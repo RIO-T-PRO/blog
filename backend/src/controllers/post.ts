@@ -4,11 +4,10 @@ import {
   updatePost as updatePostService,
   deletePost as deletePostService,
 } from "@/database/services/post.js";
-import { postBody, updatePostBody } from "@/schemas/post.js";
+import { postBody, postIdParam, updatePostBody } from "@/schemas/post.js";
 
 const createPost = async (req: Request, res: Response) => {
-  const writer = req.writer;
-  if (!writer) return res.status(403).json({ error: "Writer not found" });
+  const { writer } = req;
 
   const postData = req.body as postBody;
   const newPost = await createPostService({
@@ -25,18 +24,18 @@ const createPost = async (req: Request, res: Response) => {
 };
 
 const updatePost = async (req: Request, res: Response) => {
-  const post = req.post;
+  const { postId } = req.params as postIdParam;
   const updateData = req.body as updatePostBody;
 
-  const updatedPost = await updatePostService(post.post_id, updateData);
+  const updatedPost = await updatePostService(postId, updateData);
   return res
     .status(200)
     .json({ status: "success", data: { post: updatedPost } });
 };
 
 const deletePost = async (req: Request, res: Response) => {
-  const post = req.post;
-  await deletePostService(post.post_id);
+  const { postId } = req.params as postIdParam;
+  await deletePostService(postId);
   return res
     .status(200)
     .json({ status: "success", message: "Post deleted successfully" });

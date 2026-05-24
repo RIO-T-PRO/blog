@@ -15,13 +15,13 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/auth", authRoutes);
-app.use("/admin", adminRoutes);
-app.use("/writer", writerRoutes);
-app.use("/user", userRoutes);
-app.use("/profile", userProfileRoutes);
-app.use("/posts", postRoutes);
-app.use("/comment", commentRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/writer", writerRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/profile", userProfileRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/comment", commentRoutes);
 
 const PORT = process.env.PORT || 3000;
 

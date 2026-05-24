@@ -29,6 +29,7 @@ const deleteUserProfile = async (user_profile_id: string) => {
 const findProfileByUserId = async (user_profile_id: string) => {
   return prisma.userProfile.findUnique({
     where: { user_profile_id: user_profile_id },
+    include: { user: true },
   });
 };
 

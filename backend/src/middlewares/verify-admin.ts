@@ -29,6 +29,7 @@ export const verifyAdmin = async (
   }
 };
 
+// for delte/revoke writer
 export const isAdminOrWriterOwner = async (
   req: Request,
   res: Response,

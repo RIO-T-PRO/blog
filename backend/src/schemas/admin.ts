@@ -11,7 +11,7 @@ export const updateAdminBodySchema = z.object({
 });
 
 export const adminIdParamSchema = z.object({
-  admin_id: z.string().uuid("Invalid admin ID"),
+  adminId: z.string().uuid("Invalid admin ID"),
 });
 
 export type AdminIdParam = z.infer<typeof adminIdParamSchema>;

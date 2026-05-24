@@ -13,19 +13,21 @@ import {
   getComment,
 } from "@/controllers/comment.js";
 import { authMiddleware } from "@/middlewares/auth.js";
+import { verifyUser } from "@/middlewares/verify-user.js";
 
 const router = Router();
 
 router.use(authMiddleware);
 
 router.post(
-  "/comments",
+  "/",
   validate(createCommentBodySchema, "body"),
+  verifyUser,
   createComment,
 );
 
 router.get(
-  "/comments/:comment_id",
+  "/:comment_id",
   validate(commentIdParamSchema, "params"),
   commentPermissions,
   getComment,

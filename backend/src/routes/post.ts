@@ -16,24 +16,30 @@ import {
 
 const router = Router();
 
-router.get("/:post_id", validate(postIdParamSchema, "params"), getPost);
+router.use(authMiddleware);
 
-router.post(
-  "/",
-  authMiddleware,
-  validate(createPostSchema, "body"),
+router.get(
+  "/:postId",
+  validate(postIdParamSchema, "params"),
   verifyWriter,
-  createPost,
+  getPost,
 );
 
+router.post("/", validate(createPostSchema, "body"), verifyWriter, createPost);
+
 router.put(
-  "/",
-  authMiddleware,
+  "/:postId",
+  validate(postIdParamSchema, "params"),
   validate(updatePostSchema, "body"),
   verifyWriter,
   updatePost,
 );
 
-router.delete("/", authMiddleware, verifyWriter, deletePost);
+router.delete(
+  "/:postId",
+  validate(postIdParamSchema, "params"),
+  verifyWriter,
+  deletePost,
+);
 
 export default router;

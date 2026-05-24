@@ -29,6 +29,7 @@ const deleteComment = async (comment_id: string) => {
 const findCommentById = async (comment_id: string) => {
   return prisma.comment.findUnique({
     where: { comment_id: comment_id },
+    include: { post: true },
   });
 };
 

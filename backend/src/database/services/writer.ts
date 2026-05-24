@@ -34,6 +34,15 @@ const deleteWriter = async (writer_id: string) => {
 const getWriter = async (writerId: string): Promise<Writer | null> => {
   return await prisma.writer.findUnique({
     where: { writer_id: writerId },
+    include: {
+      user: {
+        select: {
+          user_id: true,
+          fullname: true,
+          email: true,
+        },
+      },
+    },
   });
 };
 

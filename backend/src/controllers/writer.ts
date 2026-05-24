@@ -36,10 +36,10 @@ const createWriter = async (req: Request, res: Response): Promise<Response> => {
 
 const updateWriter = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const writer = req.writer;
+    const { writerId } = req.params as WriterIdParam;
     const { website } = req.body as UpdateWriterBody;
 
-    const updated = await updateWriterService(writer.writer_id, { website });
+    const updated = await updateWriterService(writerId, { website });
     return res.status(200).json({
       status: "success",
       message: "Updated successfully.",
@@ -54,9 +54,9 @@ const updateWriter = async (req: Request, res: Response): Promise<Response> => {
 // Admin or Writer
 const deleteWriter = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const writer = req.writer;
+    const { writerId } = req.params as WriterIdParam;
 
-    await deleteWriterService(writer.writer_id);
+    await deleteWriterService(writerId);
 
     return res.status(200).json({
       status: "success",
@@ -90,12 +90,10 @@ const writerDashboard = async (
 ): Promise<Response> => {
   try {
     const { writerId } = req.params as WriterIdParam;
-    const writer_id = writerId;
-
     const { page, limit } = req.query as unknown as WriterDashboardQuery;
 
     const dashboardData = await getWriterDashboard({
-      writer_id: writer_id,
+      writer_id: writerId,
       page,
       limit,
     });

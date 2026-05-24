@@ -8,14 +8,6 @@ interface GetAdminWritersParams {
   limit?: number;
 }
 
-const getAdminWithUser = async (): Promise<Admin | null> => {
-  return prisma.admin.findFirst({
-    include: {
-      user: true,
-    },
-  });
-};
-
 const updateAdmin = async (
   adminId: string,
   data: Partial<Pick<Admin, "role">>,
@@ -49,6 +41,15 @@ const findAdminById = async (admin_id: string): Promise<Admin | null> => {
 const getAdminByUserId = async (user_id: string): Promise<Admin | null> => {
   return prisma.admin.findUnique({
     where: { user_id: user_id },
+    include: {
+      user: {
+        select: {
+          user_id: true,
+          fullname: true,
+          email: true,
+        },
+      },
+    },
   });
 };
 
@@ -130,7 +131,6 @@ const getadminDashboard = async ({
 };
 
 export {
-  getAdminWithUser,
   promoteToAdmin,
   updateAdmin,
   findAdminById,

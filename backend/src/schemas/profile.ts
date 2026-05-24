@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const profileIdParamSchema = z.object({
-  profile_id: z.string().uuid({ message: "Invalid profile ID format" }),
+  profileId: z.string().uuid({ message: "Invalid profile ID format" }),
 });
 
 export const createProfileBodySchema = z.object({
