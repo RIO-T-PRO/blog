@@ -12,7 +12,7 @@ export const createPostSchema = z.object({
 export const updatePostSchema = createPostSchema.partial();
 
 export const postIdParamSchema = z.object({
-  post_id: z.string().min(1, "Post ID is required"),
+  postId: z.string().min(1, "Post ID is required"),
 });
 
 export const postIdQuerySchema = z.object({

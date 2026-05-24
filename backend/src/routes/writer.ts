@@ -33,7 +33,8 @@ router.post(
 );
 
 router.put(
-  "/",
+  "/:writerId",
+  validate(writerIdParamSchema, "params"),
   validate(updateWriterBodySchema, "body"),
   verifyWriter,
   updateWriter,
@@ -47,12 +48,18 @@ router.delete(
   deleteWriter,
 );
 
-router.get("/:writerId", validate(writerIdParamSchema, "params"), getWriter);
+router.get(
+  "/:writerId",
+  validate(writerIdParamSchema, "params"),
+  verifyWriter,
+  getWriter,
+);
 
 // Writer's own dashboard
 router.get(
-  "/dashboard",
-  validate(writerDashboardQuerySchema, "body"),
+  "/dashboard/:writerId",
+  validate(writerIdParamSchema, "params"),
+  validate(writerDashboardQuerySchema, "query"),
   verifyWriter,
   writerDashboard,
 );

@@ -4,12 +4,11 @@ import { DashboardParams, DashboardQuery } from "@/schemas/user.js";
 
 export const userDashboard = async (req: Request, res: Response) => {
   try {
-    const { user_id } = req.params as DashboardParams;
-
+    const { userId } = req.params as DashboardParams;
     const { page, limit } = req.query as unknown as DashboardQuery;
 
     const dashboardData = await getUserDashboard({
-      userId: user_id,
+      userId: userId,
       page,
       limit,
     });

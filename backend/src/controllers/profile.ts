@@ -5,19 +5,19 @@ import {
   deleteUserProfile as deleteProfileService,
   findProfileByUserId,
 } from "@/database/services/profile.js";
-import { CreateProfileBody } from "@/schemas/profile.js";
+import { CreateProfileBody, ProfileIdParam } from "@/schemas/profile.js";
 
 const createUserProfile = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
-  const userId = req.user.user_id;
+  const { user } = req;
   const { bio, avatar } = req.body as CreateProfileBody;
 
   try {
     const newProfile = await createProfileService({
       user_profile_id: crypto.randomUUID(),
-      user_id: userId,
+      user_id: user.user_id,
       bio,
       avatar,
     });
@@ -36,12 +36,9 @@ const updateUserProfile = async (
   res: Response,
 ): Promise<Response> => {
   try {
-    const profile = req.profile;
+    const { profileId } = req.params as ProfileIdParam;
 
-    const updatedProfile = await updateProfileService(
-      profile.user_profile_id,
-      req.body,
-    );
+    const updatedProfile = await updateProfileService(profileId, req.body);
     return res
       .status(200)
       .json({ status: "success", data: { profile: updatedProfile } });
@@ -55,10 +52,10 @@ const deleteUserProfile = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
-  const profile = req.profile;
+  const { profileId } = req.params as ProfileIdParam;
 
   try {
-    await deleteProfileService(profile.user_profile_id);
+    await deleteProfileService(profileId);
     return res
       .status(200)
       .json({ status: "success", message: "Profile deleted successfully." });
@@ -72,10 +69,10 @@ const getUserProfile = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
-  const attachedProfile = req.profile;
+  const { profileId } = req.params as ProfileIdParam;
 
   try {
-    const profile = await findProfileByUserId(attachedProfile.user_profile_id);
+    const profile = await findProfileByUserId(profileId);
 
     return res.status(200).json({ status: "success", data: { profile } });
   } catch (error) {

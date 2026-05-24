@@ -1,12 +1,14 @@
 import { Request, Response } from "express";
 import {
+  findAdminById,
+  getAdminByUserId,
   getadminDashboard,
   updateAdmin as updateAdminService,
 } from "@/database/services/admin.js";
 import { adminDashboardQuerySchema, AdminIdParam } from "@/schemas/admin.js";
 
 const getAdmin = async (req: Request, res: Response): Promise<Response> => {
-  const admin = req.admin;
+  const { admin } = req;
 
   try {
     return res.status(200).json({ status: "success", data: { admin } });
@@ -20,15 +22,12 @@ const adminDashboard = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
-  const admin_id = req.admin.admin_id;
+  const { adminId } = req.params as AdminIdParam;
+  const { page, limit, published } = adminDashboardQuerySchema.parse(req.query);
 
   try {
-    const { page, limit, published } = adminDashboardQuerySchema.parse(
-      req.query,
-    );
-
     const dashboardData = await getadminDashboard({
-      adminUserId: admin_id,
+      adminUserId: adminId,
       published,
       page,
       limit,
