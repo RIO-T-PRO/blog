@@ -8,6 +8,7 @@ import postRoutes from "@/routes/post.js";
 import adminRoutes from "@/routes/admin.js";
 import userProfileRoutes from "@/routes/profile.js";
 import userRoutes from "@/routes/user.js";
+import landingPageRoutes from "@/routes/landing-page.js";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ const app = express();
 
 app.use(express.json());
 
+app.use("api/landing", landingPageRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/writer", writerRoutes);
