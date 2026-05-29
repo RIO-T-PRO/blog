@@ -1,26 +1,79 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaFeatherAlt } from "react-icons/fa";
 import { FaArrowLeftLong, FaEye, FaEyeSlash } from "react-icons/fa6";
 
 import Container from "@/components/ui/container";
+
 import PasswordStrength from "@/lib/password-strength";
+
+import { signup } from "@/lib/api/auth";
+
+import { useAuth } from "@/lib/context/auth-context";
+
+type Status = "idle" | "submitting" | "success";
 
 const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState<Status>("idle");
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  const { setUser } = useAuth();
+
+  const navigate = useNavigate();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log({
-      name,
-      email,
-      password,
-    });
+    setError("");
+
+    try {
+      setStatus("submitting");
+
+      const res = await signup({
+        fullName: form.name,
+        email: form.email,
+        password: form.password,
+      });
+
+      if (!res) {
+        setStatus("idle");
+        setError("Something went wrong.");
+
+        return;
+      }
+
+      setUser(res.data);
+
+      setStatus("success");
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1200);
+    } catch (err) {
+      console.error(err);
+
+      setStatus("idle");
+
+      setError("Failed to create account.");
+    }
   };
 
   return (
@@ -31,7 +84,6 @@ const SignupPage = () => {
           <div className="relative hidden h-full flex-col justify-between overflow-hidden bg-primary px-10 py-8 text-white lg:flex">
             {/* TOP */}
             <div className="flex items-center justify-between">
-              {/* LOGO */}
               <Link className="group inline-flex items-center gap-3" to="/">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-white transition-all duration-300 group-hover:scale-105 group-hover:bg-white group-hover:text-primary">
                   <FaFeatherAlt className="text-sm" />
@@ -48,7 +100,6 @@ const SignupPage = () => {
                 </div>
               </Link>
 
-              {/* BACK */}
               <Link
                 className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 font-ui text-sm font-medium text-white/80 transition-all duration-200 hover:bg-white hover:text-primary"
                 to="/"
@@ -58,7 +109,7 @@ const SignupPage = () => {
               </Link>
             </div>
 
-            {/* CENTER CONTENT */}
+            {/* CENTER */}
             <div className="max-w-md">
               <p className="mb-4 font-ui text-sm uppercase tracking-[0.3em] text-white/60">
                 Welcome to Chronicle
@@ -97,7 +148,7 @@ const SignupPage = () => {
           {/* RIGHT SIDE */}
           <div className="flex h-full items-center justify-center px-6 py-8 sm:px-10">
             <div className="w-full max-w-md">
-              {/* MOBILE TOP BAR */}
+              {/* MOBILE TOP */}
               <div className="mb-6 flex items-center justify-between lg:hidden">
                 <Link className="group inline-flex items-center gap-3" to="/">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105 group-hover:bg-primary group-hover:text-white">
@@ -136,6 +187,13 @@ const SignupPage = () => {
                 </p>
               </div>
 
+              {/* ERROR */}
+              {error && (
+                <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-500">
+                  {error}
+                </div>
+              )}
+
               {/* FORM */}
               <form className="space-y-4" onSubmit={handleSubmit}>
                 {/* NAME */}
@@ -149,10 +207,11 @@ const SignupPage = () => {
 
                   <input
                     id="name"
+                    name="name"
                     type="text"
                     required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={form.name}
+                    onChange={handleChange}
                     placeholder="John Doe"
                     className="w-full rounded-xl border border-border-muted bg-surface px-4 py-3 text-on-surface placeholder:text-text-secondary outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                   />
@@ -169,10 +228,11 @@ const SignupPage = () => {
 
                   <input
                     id="email"
+                    name="email"
                     type="email"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={form.email}
+                    onChange={handleChange}
                     placeholder="you@example.com"
                     className="w-full rounded-xl border border-border-muted bg-surface px-4 py-3 text-on-surface placeholder:text-text-secondary outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                   />
@@ -190,10 +250,11 @@ const SignupPage = () => {
                   <div className="relative">
                     <input
                       id="password"
+                      name="password"
                       type={showPassword ? "text" : "password"}
                       required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      value={form.password}
+                      onChange={handleChange}
                       placeholder="Create a strong password"
                       className="w-full rounded-xl border border-border-muted bg-surface px-4 py-3 pr-14 text-on-surface placeholder:text-text-secondary outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                     />
@@ -211,15 +272,20 @@ const SignupPage = () => {
                     </button>
                   </div>
 
-                  <PasswordStrength password={password} />
+                  <PasswordStrength password={form.password} />
                 </div>
 
                 {/* SUBMIT */}
                 <button
                   type="submit"
-                  className="group inline-flex h-12 w-full items-center justify-center rounded-xl bg-primary px-5 font-ui text-sm font-semibold uppercase tracking-wide text-on-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-lg active:translate-y-0"
+                  disabled={status === "submitting"}
+                  className="group inline-flex h-12 w-full items-center justify-center rounded-xl bg-primary px-5 font-ui text-sm font-semibold uppercase tracking-wide text-on-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-lg active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  Create Account
+                  {status === "submitting"
+                    ? "Creating Account..."
+                    : status === "success"
+                      ? "Success!"
+                      : "Create Account"}
                 </button>
               </form>
 

@@ -7,7 +7,7 @@ import { loginBodySchema, registerBodySchema } from "@/schemas/auth.js";
 
 const router = express.Router();
 
-router.post("/register", validate(registerBodySchema, "body"), register);
-router.post("/login", validate(loginBodySchema, "body"), login);
+router.post("/signup", validate(registerBodySchema, "body"), register);
+router.post("/signin", validate(loginBodySchema, "body"), login);
 
 export default router;

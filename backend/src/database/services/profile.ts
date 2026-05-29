@@ -1,15 +1,23 @@
+// src/database/services/profile.ts
+
 import { prisma } from "@/database/db.js";
 
-const createUserProfile = async (data: {
-  user_profile_id: string;
+/* CREATE PROFILE */
+export const createUserProfile = async (data: {
   user_id: string;
   bio?: string;
   avatar?: string;
 }) => {
-  return prisma.userProfile.create({ data });
+  return prisma.userProfile.create({
+    data,
+    include: {
+      user: true,
+    },
+  });
 };
 
-const updateUserProfile = async (
+/* UPDATE PROFILE */
+export const updateUserProfile = async (
   user_profile_id: string,
   data: Partial<{
     bio: string;
@@ -17,25 +25,45 @@ const updateUserProfile = async (
   }>,
 ) => {
   return prisma.userProfile.update({
-    where: { user_profile_id },
+    where: {
+      user_profile_id,
+    },
     data,
+    include: {
+      user: true,
+    },
   });
 };
 
-const deleteUserProfile = async (user_profile_id: string) => {
-  return prisma.userProfile.delete({ where: { user_profile_id } });
+/* DELETE PROFILE */
+export const deleteUserProfile = async (user_profile_id: string) => {
+  return prisma.userProfile.delete({
+    where: {
+      user_profile_id,
+    },
+  });
 };
 
-const findProfileByUserId = async (user_profile_id: string) => {
+/* FIND PROFILE BY USER ID */
+export const findProfileByUserId = async (user_id: string) => {
   return prisma.userProfile.findUnique({
-    where: { user_profile_id: user_profile_id },
-    include: { user: true },
+    where: {
+      user_id,
+    },
+    include: {
+      user: true,
+    },
   });
 };
 
-export {
-  createUserProfile,
-  updateUserProfile,
-  deleteUserProfile,
-  findProfileByUserId,
+/* FIND PROFILE BY PROFILE ID */
+export const findProfileByProfileId = async (user_profile_id: string) => {
+  return prisma.userProfile.findUnique({
+    where: {
+      user_profile_id,
+    },
+    include: {
+      user: true,
+    },
+  });
 };
