@@ -1,23 +1,33 @@
 import { Router } from "express";
+
 import {
   createUserProfile,
   updateUserProfile,
   deleteUserProfile,
   getUserProfile,
+  getCurrentUserProfile,
 } from "@/controllers/profile.js";
+
 import { authMiddleware } from "@/middlewares/auth.js";
+
 import { validate } from "@/middlewares/validate.js";
+
 import {
   createProfileBodySchema,
   profileIdParamSchema,
   updateProfileBodySchema,
 } from "@/schemas/profile.js";
+
 import { verifyUser } from "@/middlewares/verify-user.js";
 
 const router = Router();
 
 router.use(authMiddleware);
 
+/* CURRENT AUTHENTICATED USER PROFILE */
+router.get("/", verifyUser, getCurrentUserProfile);
+
+/* CREATE PROFILE */
 router.post(
   "/",
   validate(createProfileBodySchema, "body"),
@@ -25,6 +35,7 @@ router.post(
   createUserProfile,
 );
 
+/* PUBLIC/PROFILE BY ID */
 router.get(
   "/:profileId",
   validate(profileIdParamSchema, "params"),
@@ -32,6 +43,7 @@ router.get(
   getUserProfile,
 );
 
+/* UPDATE PROFILE */
 router.put(
   "/:profileId",
   validate(profileIdParamSchema, "params"),
@@ -40,6 +52,7 @@ router.put(
   updateUserProfile,
 );
 
+/* DELETE PROFILE */
 router.delete(
   "/:profileId",
   validate(profileIdParamSchema, "params"),
