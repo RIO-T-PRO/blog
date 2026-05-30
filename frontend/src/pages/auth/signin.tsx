@@ -1,25 +1,59 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FaFeatherAlt } from "react-icons/fa";
 import { FaArrowLeftLong, FaEye, FaEyeSlash } from "react-icons/fa6";
 
 import Container from "@/components/ui/container";
+import { useAuth } from "@/lib/context/auth-context";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [error, setError] = useState("");
+  const [status, setStatus] = useState<"idle" | "submitting">("idle");
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const { signin, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Navigate when user is set (successful signin)
+  useEffect(() => {
+    if (user) {
+      setTimeout(() => navigate("/"), 500);
+    }
+  }, [user, navigate]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
+    setStatus("submitting");
 
-    console.log({
-      email,
-      password,
-      remember,
-    });
+    try {
+      await signin({ email: form.email, password: form.password });
+      // Success will set user, navigation via useEffect
+      setTimeout(() => {
+        if (!user) {
+          setStatus("idle");
+          setError("Invalid email or password. Please try again.");
+        }
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      setStatus("idle");
+      setError("Failed to sign in. Please try again.");
+    }
   };
 
   return (
@@ -30,7 +64,6 @@ const LoginPage = () => {
           <div className="relative hidden h-full flex-col justify-between overflow-hidden bg-primary px-10 py-8 text-white lg:flex">
             {/* TOP */}
             <div className="flex items-center justify-between">
-              {/* LOGO */}
               <Link className="group inline-flex items-center gap-3" to="/">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-white transition-all duration-300 group-hover:scale-105 group-hover:bg-white group-hover:text-primary">
                   <FaFeatherAlt className="text-sm" />
@@ -47,7 +80,6 @@ const LoginPage = () => {
                 </div>
               </Link>
 
-              {/* BACK */}
               <Link
                 className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 font-ui text-sm font-medium text-white/80 transition-all duration-200 hover:bg-white hover:text-primary"
                 to="/"
@@ -134,6 +166,13 @@ const LoginPage = () => {
                 </p>
               </div>
 
+              {/* ERROR DISPLAY */}
+              {error && (
+                <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-500">
+                  {error}
+                </div>
+              )}
+
               {/* FORM */}
               <form className="space-y-4" onSubmit={handleSubmit}>
                 {/* EMAIL */}
@@ -147,10 +186,11 @@ const LoginPage = () => {
 
                   <input
                     id="email"
+                    name="email"
                     type="email"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={form.email}
+                    onChange={handleChange}
                     placeholder="you@example.com"
                     className="w-full rounded-xl border border-border-muted bg-surface px-4 py-3 text-on-surface placeholder:text-text-secondary outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                   />
@@ -177,10 +217,11 @@ const LoginPage = () => {
                   <div className="relative">
                     <input
                       id="password"
+                      name="password"
                       type={showPassword ? "text" : "password"}
                       required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      value={form.password}
+                      onChange={handleChange}
                       placeholder="Enter your password"
                       className="w-full rounded-xl border border-border-muted bg-surface px-4 py-3 pr-14 text-on-surface placeholder:text-text-secondary outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                     />
@@ -215,12 +256,13 @@ const LoginPage = () => {
                   </label>
                 </div>
 
-                {/* SUBMIT */}
+                {/* SUBMIT BUTTON */}
                 <button
                   type="submit"
-                  className="group inline-flex h-12 w-full items-center justify-center rounded-xl bg-primary px-5 font-ui text-sm font-semibold uppercase tracking-wide text-on-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-lg active:translate-y-0"
+                  disabled={status === "submitting"}
+                  className="group inline-flex h-12 w-full items-center justify-center rounded-xl bg-primary px-5 font-ui text-sm font-semibold uppercase tracking-wide text-on-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-lg active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  Sign In
+                  {status === "submitting" ? "Signing In..." : "Sign In"}
                 </button>
               </form>
 

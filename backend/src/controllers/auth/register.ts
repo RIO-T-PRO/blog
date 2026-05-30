@@ -1,4 +1,3 @@
-// src/controllers/auth/register.ts
 import { Request, Response } from "express";
 
 import { createUser, findUserByEmail } from "@/database/services/user.js";

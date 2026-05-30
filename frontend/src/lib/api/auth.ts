@@ -21,10 +21,10 @@ export const signin = (payload: SigninPayload) =>
 
 export const getProfile = () => apiFetch<ProfileResponse>("/profile");
 
-// export const logout = () =>
-//   apiFetch<{ message: string }>("/auth/logout", {
-//     method: "POST",
-//   });
+export const logout = () =>
+  apiFetch<{ message: string }>("/auth/logout", {
+    method: "POST",
+  });
 
 // export const updateProfile = (
 //   profileId: string,

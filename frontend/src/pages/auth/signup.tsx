@@ -1,38 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaFeatherAlt } from "react-icons/fa";
 import { FaArrowLeftLong, FaEye, FaEyeSlash } from "react-icons/fa6";
 
 import Container from "@/components/ui/container";
-
 import PasswordStrength from "@/lib/password-strength";
-
-import { signup } from "@/lib/api/auth";
-
 import { useAuth } from "@/lib/context/auth-context";
 
 type Status = "idle" | "submitting" | "success";
 
 const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-
   const [status, setStatus] = useState<Status>("idle");
-
   const [error, setError] = useState("");
-
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
   });
 
-  const { setUser } = useAuth();
-
+  const { signup, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      setStatus("success");
+      setTimeout(() => navigate("/"), 1200);
+    }
+  }, [user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
     setForm((prev) => ({
       ...prev,
       [name]: value,
@@ -41,37 +39,25 @@ const SignupPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     setError("");
+    setStatus("submitting");
 
     try {
-      setStatus("submitting");
-
-      const res = await signup({
+      await signup({
         fullName: form.name,
         email: form.email,
         password: form.password,
       });
 
-      if (!res) {
-        setStatus("idle");
-        setError("Something went wrong.");
-
-        return;
-      }
-
-      setUser(res.data);
-
-      setStatus("success");
-
       setTimeout(() => {
-        navigate("/");
-      }, 1200);
+        if (!user) {
+          setStatus("idle");
+          setError("Failed to create account. Please try again.");
+        }
+      }, 2000);
     } catch (err) {
       console.error(err);
-
       setStatus("idle");
-
       setError("Failed to create account.");
     }
   };

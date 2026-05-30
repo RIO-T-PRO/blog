@@ -10,7 +10,7 @@ import {
   FaPenToSquare,
 } from "react-icons/fa6";
 
-import { FaFeatherAlt } from "react-icons/fa";
+import { FaFeatherAlt, FaSignOutAlt } from "react-icons/fa";
 
 import Container from "./ui/container";
 import { Avatar } from "./avatar";
@@ -33,7 +33,7 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -198,6 +198,14 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
                       <FaPenToSquare className="text-sm" />
                       Dashboard
                     </Link>
+
+                    <button
+                      onClick={logout}
+                      className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                    >
+                      <FaSignOutAlt className="text-base" />
+                      Logout
+                    </button>
                   </div>
                 </div>
               </div>
