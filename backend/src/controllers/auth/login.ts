@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
 import { comparePassword } from "@/utils/password.js";
 import { generateToken } from "@/utils/token.js";
+import { setAuthCookie, clearAuthCookie } from "@/utils/cookie.js";
 import { LoginBody } from "@/schemas/auth.js";
 import { findUserByEmail } from "@/database/services/user.js";
 import { findWriterByUserId } from "@/database/services/writer.js";
 import { getAdminByUserId } from "@/database/services/admin.js";
+import { findProfileByUserId } from "@/database/services/profile.js";
 
 export const login = async (
   req: Request,
@@ -12,6 +14,8 @@ export const login = async (
 ): Promise<void | Response> => {
   try {
     const { email, password } = req.body as LoginBody;
+
+    clearAuthCookie(res);
 
     const user = await findUserByEmail(email);
 
@@ -24,19 +28,24 @@ export const login = async (
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const writer = await findWriterByUserId(user.user_id);
-    const admin = await getAdminByUserId(user.user_id);
+    const [profile, writer, admin] = await Promise.all([
+      findProfileByUserId(user.user_id),
+      findWriterByUserId(user.user_id),
+      getAdminByUserId(user.user_id),
+    ]);
 
     const token = generateToken({
       userId: user.user_id,
       email: user.email,
     });
 
+    setAuthCookie(res, token);
+
     const responseData: any = {
       message: "Login successful",
-      token,
       user: {
         user_id: user.user_id,
+        profile_id: profile?.user_profile_id,
         fullname: user.fullname,
         email: user.email,
       },
@@ -46,10 +55,12 @@ export const login = async (
     if (admin) responseData.admin = admin;
 
     return res.status(200).json({
-      responseData,
+      message: "success",
+      data: responseData,
     });
   } catch (error) {
     console.error("Login error:", error);
+    clearAuthCookie(res);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

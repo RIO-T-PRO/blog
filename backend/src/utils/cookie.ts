@@ -16,5 +16,6 @@ export const clearAuthCookie = (res: Response): void => {
     httpOnly: true,
     secure: isProduction,
     sameSite: "lax",
+    path: "/",
   });
 };
