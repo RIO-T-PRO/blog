@@ -1,4 +1,4 @@
-const BASE_URL = `${import.meta.env.VITE_API_URL ?? ""}/api`;
+const BASE_URL = "/api";
 
 const apiFetch = async <T>(
   path: string,
@@ -7,7 +7,9 @@ const apiFetch = async <T>(
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       ...options,
+
       credentials: "include",
+
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
@@ -29,6 +31,7 @@ const apiFetch = async <T>(
     return (await res.json()) as T;
   } catch (error) {
     console.error(error);
+
     return null;
   }
 };

@@ -52,6 +52,11 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
     };
   }, []);
 
+  const handleLogoutClick = async () => {
+    await logout();
+    setDropdownOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-border-muted/60 bg-surface/80 backdrop-blur-2xl">
       <Container>
@@ -125,7 +130,7 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
                 >
                   <Avatar
                     id={user.user_id}
-                    name={user.fullName}
+                    name={user.fullname}
                     email={user.email}
                     clickable
                     rounded="full"
@@ -134,7 +139,7 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
 
                   <div className="hidden text-left xl:block">
                     <p className="max-w-28 truncate font-ui text-sm font-medium text-on-surface">
-                      {user.fullName}
+                      {user.fullname}
                     </p>
 
                     <p className="text-[11px] text-text-secondary">
@@ -162,7 +167,7 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
                   <div className="flex items-center gap-3 border-b border-border-muted/70 px-5 py-4">
                     <Avatar
                       id={user.user_id}
-                      name={user.fullName}
+                      name={user.fullname}
                       email={user.email}
                       rounded="xl"
                       size={10}
@@ -170,7 +175,7 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
 
                     <div className="min-w-0">
                       <p className="truncate font-ui text-sm font-semibold text-on-surface">
-                        {user.fullName}
+                        {user.fullname}
                       </p>
 
                       <p className="truncate text-xs text-text-secondary">
@@ -200,10 +205,11 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
                     </Link>
 
                     <button
-                      onClick={logout}
-                      className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                      onClick={handleLogoutClick}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 font-ui text-sm text-red-600 transition-colors duration-200 hover:bg-red-50"
+                      type="button"
                     >
-                      <FaSignOutAlt className="text-base" />
+                      <FaSignOutAlt className="text-sm" />
                       Logout
                     </button>
                   </div>

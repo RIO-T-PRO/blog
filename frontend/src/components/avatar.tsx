@@ -7,11 +7,14 @@ const ACCENT_COLORS = [
 ] as const;
 
 type AvatarSize = 7 | 8 | 9 | 10 | 11 | 12;
+
 type AvatarRounded = "full" | "xl" | "2xl";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const accentFor = (id?: string) => {
-  if (!id?.trim()) return ACCENT_COLORS[0];
+  if (!id?.trim()) {
+    return ACCENT_COLORS[0];
+  }
 
   const hash = [...id].reduce((acc, char) => {
     return acc + char.charCodeAt(0);
@@ -26,7 +29,9 @@ const initials = (name?: string, email?: string) => {
 
     // FIRST + LAST INITIAL
     if (parts.length >= 2) {
-      return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
+      return `${parts[0][0] ?? ""}${
+        parts[parts.length - 1][0] ?? ""
+      }`.toUpperCase();
     }
 
     // SINGLE NAME
@@ -110,13 +115,13 @@ export const Avatar = ({
     >
       {avatar ? (
         <img
+          src={avatar}
           alt={name ?? "Avatar"}
+          loading="lazy"
           className={[
             "h-full w-full object-cover transition-transform duration-500",
             clickable ? "group-hover:scale-[1.03]" : "",
           ].join(" ")}
-          loading="lazy"
-          src={avatar}
         />
       ) : (
         <div
