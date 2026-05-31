@@ -51,12 +51,17 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       data: {
         user: {
           user_id: user.user_id,
+
           profile_id: profile?.user_profile_id ?? null,
+
           fullname: user.fullname,
+
           email: user.email,
+
+          writer: !!writer,
+
+          admin: !!admin,
         },
-        writer: writer ?? null,
-        admin: admin ?? null,
       },
     });
   } catch (error) {

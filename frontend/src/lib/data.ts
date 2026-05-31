@@ -112,3 +112,36 @@ export const articles: Article[] = [
       "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&auto=format&fit=crop",
   },
 ];
+
+export const stories = [
+  {
+    id: 1,
+    title: "The Architecture of Silence",
+    category: "Science",
+    status: "Published",
+    reads: "4.2k",
+    date: "Edited 2 hours ago",
+    image:
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 2,
+    title: "Why Minimalist Living Is Expensive",
+    category: "Culture",
+    status: "Draft",
+    reads: "0",
+    date: "Edited yesterday",
+    image:
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 3,
+    title: "Humans vs Algorithms",
+    category: "Essays",
+    status: "Scheduled",
+    reads: "0",
+    date: "Scheduled tomorrow",
+    image:
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1200&auto=format&fit=crop",
+  },
+];

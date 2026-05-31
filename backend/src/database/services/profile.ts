@@ -51,7 +51,12 @@ export const findProfileByUserId = async (user_id: string) => {
       user_id,
     },
     include: {
-      user: true,
+      user: {
+        include: {
+          writer: true,
+          admin: true,
+        },
+      },
     },
   });
 };

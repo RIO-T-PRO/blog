@@ -9,6 +9,7 @@ import NotFoundPage from "@/pages/not-found";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/home/search-modal";
+import DashboardPage from "./pages/dashboard";
 
 const PlaceholderPage = ({ title }: { title: string }) => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
     "/signup",
     "/signin",
     "/write",
+    "/dashboard",
   ];
 
   const isAuthPage = authRoutes.includes(location.pathname);
@@ -50,22 +52,14 @@ const App = () => {
       {/* ROUTES */}
       <Routes>
         <Route path="/" element={<HomePage />} />
-
         <Route path="/essays" element={<PlaceholderPage title="Essays" />} />
-
         <Route path="/culture" element={<PlaceholderPage title="Culture" />} />
-
         <Route path="/science" element={<PlaceholderPage title="Science" />} />
-
         <Route path="/archive" element={<PlaceholderPage title="Archive" />} />
-
         <Route path="/signup" element={<SignupPage />} />
-
         <Route path="/signin" element={<LoginPage />} />
-
         <Route path="/write" element={<PlaceholderPage title="Write" />} />
-
-        {/* INVALID ROUTES */}
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 

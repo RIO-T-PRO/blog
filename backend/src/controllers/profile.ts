@@ -64,34 +64,54 @@ const getCurrentUserProfile = async (
     const { user } = req as Request & {
       user: {
         user_id: string;
+        fullname: string;
+        email: string;
+
+        writer?: unknown | null;
+        admin?: unknown | null;
       };
     };
 
     const profile = await findProfileByUserId(user.user_id);
 
-    if (!profile) {
-      return res.status(404).json({
-        error: "Profile not found",
-      });
-    }
-
     return res.status(200).json({
       status: "success",
-      data: {
-        profile: {
-          user_profile_id: profile.user_profile_id,
-          user_id: profile.user_id,
-          bio: profile.bio,
-          avatar: profile.avatar,
-          createdAt: profile.createdAt,
-          updatedAt: profile.updatedAt,
 
-          user: {
-            user_id: profile.user.user_id,
-            fullname: profile.user.fullname,
-            email: profile.user.email,
-          },
-        },
+      data: {
+        profile: profile
+          ? {
+              user_profile_id: profile.user_profile_id,
+              bio: profile.bio,
+              avatar: profile.avatar,
+              createdAt: profile.createdAt,
+              updatedAt: profile.updatedAt,
+
+              user: {
+                user_id: profile.user.user_id,
+                fullname: profile.user.fullname,
+                email: profile.user.email,
+
+                writer: profile.user.writer,
+                admin: profile.user.admin,
+              },
+            }
+          : {
+              user_profile_id: null,
+              user_id: user.user_id,
+              bio: null,
+              avatar: null,
+              createdAt: null,
+              updatedAt: null,
+
+              user: {
+                user_id: user.user_id,
+                fullname: user.fullname,
+                email: user.email,
+
+                writer: user.writer,
+                admin: user.admin,
+              },
+            },
       },
     });
   } catch (error) {
