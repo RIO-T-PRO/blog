@@ -6,7 +6,8 @@ export type ApiResponse<T> = {
 
 export type User = {
   user_id: string;
-  fullName: string;
+  profile_id?: string | null;
+  fullname: string;
   email: string;
   createdAt?: string;
   updatedAt?: string;
@@ -42,7 +43,11 @@ export type SigninPayload = {
 
 export type AuthResponse = {
   message: string;
-  data: User;
+  data: {
+    user: User;
+    writer: unknown | null;
+    admin: unknown | null;
+  };
 };
 
 // export type UpdateProfilePayload = {

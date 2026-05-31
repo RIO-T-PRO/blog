@@ -1,10 +1,13 @@
-import { createContext, useContext, useState } from "react";
-import { logout, signin, signup } from "@/lib/api/auth";
+import { createContext, useContext, useEffect, useState } from "react";
+
+import { getProfile, logout, signin, signup } from "@/lib/api/auth";
+
 import type { User, SigninPayload, SignupPayload } from "@/types/auth";
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
+  initialized: boolean;
   signin: (payload: SigninPayload) => Promise<void>;
   signup: (payload: SignupPayload) => Promise<void>;
   logout: () => Promise<void>;
@@ -14,14 +17,39 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+
   const [loading, setLoading] = useState(false);
 
-  const handleSignin = async (payload: SigninPayload) => {
+  const [initialized, setInitialized] = useState(false);
+
+  // RESTORE SESSION ON APP LOAD
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const response = await getProfile();
+
+        if (response?.data?.profile?.user) {
+          setUser(response.data.profile.user);
+        }
+      } catch (error) {
+        console.error("Session restore failed:", error);
+        setUser(null);
+      } finally {
+        setInitialized(true);
+      }
+    };
+
+    restoreSession();
+  }, []);
+
+  const handleSignin = async (payload: SigninPayload): Promise<void> => {
     setLoading(true);
+
     try {
       const response = await signin(payload);
-      if (response?.data) {
-        setUser(response.data);
+
+      if (response?.data?.user) {
+        setUser(response.data.user);
       } else {
         console.error("Signin failed: no user data in response");
       }
@@ -32,12 +60,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const handleSignup = async (payload: SignupPayload) => {
+  const handleSignup = async (payload: SignupPayload): Promise<void> => {
     setLoading(true);
+
     try {
       const response = await signup(payload);
-      if (response?.data) {
-        setUser(response.data);
+
+      if (response?.data?.user) {
+        setUser(response.data.user);
       } else {
         console.error("Signup failed: no user data in response");
       }
@@ -48,8 +78,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     setLoading(true);
+
     try {
       await logout();
       setUser(null);
@@ -65,6 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         user,
         loading,
+        initialized,
         signin: handleSignin,
         signup: handleSignup,
         logout: handleLogout,
@@ -75,10 +107,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
+
   if (!ctx) {
     throw new Error("useAuth must be used inside AuthProvider");
   }
+
   return ctx;
 };
