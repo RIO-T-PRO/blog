@@ -143,7 +143,11 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
                     </p>
 
                     <p className="text-[11px] text-text-secondary">
-                      Reader Account
+                      {user.admin
+                        ? "Admin Account"
+                        : user.writer
+                          ? "Writer Account"
+                          : "Reader Account"}
                     </p>
                   </div>
 
@@ -198,7 +202,7 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
                     <Link
                       className="flex items-center gap-3 rounded-xl px-4 py-3 font-ui text-sm text-on-surface-variant transition-all duration-200 hover:bg-surface-container hover:text-on-surface"
                       onClick={() => setDropdownOpen(false)}
-                      to="/dashboard"
+                      to={"/dashboard"}
                     >
                       <FaPenToSquare className="text-sm" />
                       Dashboard
@@ -236,7 +240,6 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
                 </Link>
               </>
             )}
-
             {/* MOBILE MENU */}
             <button
               aria-label="Menu"

@@ -18,7 +18,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [initialized, setInitialized] = useState(false);
 
@@ -27,7 +27,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const restoreSession = async () => {
       try {
         const response = await getProfile();
-
         if (response?.data?.profile?.user) {
           setUser(response.data.profile.user);
         }
@@ -35,6 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Session restore failed:", error);
         setUser(null);
       } finally {
+        setLoading(false);
         setInitialized(true);
       }
     };
