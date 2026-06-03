@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
 import {
-  findAdminById,
-  getAdminByUserId,
   getadminDashboard,
   updateAdmin as updateAdminService,
 } from "@/database/services/admin.js";

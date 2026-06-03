@@ -5,6 +5,7 @@ import {
   deleteWriter as deleteWriterService,
   getWriter as getWriterService,
   getWriterDashboard,
+  promoteToWriter,
 } from "@/database/services/writer.js";
 import {
   WriterIdParam,
@@ -12,25 +13,21 @@ import {
   type UpdateWriterBody,
   type WriterDashboardQuery,
 } from "@/schemas/writer.js";
+import { DashboardParams } from "@/schemas/user.js";
 
 const createWriter = async (req: Request, res: Response): Promise<Response> => {
+  const { userId } = req.params as DashboardParams;
   try {
-    const { user_id, website } = req.body as CreateWriterBody;
-
-    const newWriter = await createWriterService({
-      writer_id: crypto.randomUUID(),
-      user_id,
-      website,
-    });
-
-    return res.status(201).json({
-      status: "success",
-      message: "Writer profile created successfully by administrator.",
-      data: { writer: newWriter },
-    });
+    const writer = await promoteToWriter(userId);
+    return res.status(201).json({ status: "success", data: { writer } });
   } catch (error) {
-    console.error("Create writer error:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    console.error("Promote writer error:", error);
+    if (error instanceof Error) {
+      return res.status(400).json({ status: "error", message: error.message });
+    }
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error." });
   }
 };
 

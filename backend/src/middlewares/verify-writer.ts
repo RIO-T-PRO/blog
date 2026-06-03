@@ -49,3 +49,30 @@ export const verifyWriter = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const ensureNotWriter = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<Response | void> => {
+  try {
+    const user_id = req.user.user_id;
+    const writer = await findWriterByUserId(user_id);
+
+    if (writer) {
+      return res.status(409).json({
+        status: "error",
+        message: "You are already a writer.",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Writer middleware error:", error);
+
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};

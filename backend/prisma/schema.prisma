@@ -26,6 +26,7 @@ model User {
   writer      Writer?
   admin       Admin?
   comments    Comment[]
+  writerApplication WriterApplication?
 
   @@map("users")
 }
@@ -107,4 +108,23 @@ model Admin {
   user      User     @relation(fields: [user_id], references: [user_id])
 
   @@map("admins")
+}
+
+model WriterApplication {
+  application_id String   @id @default(uuid())
+
+  user_id         String   @unique
+  reason          String   @db.Text
+  website         String?
+
+  status          String   @default("PENDING")
+  reviewedBy      String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [user_id], references: [user_id])
+
+  @@index([status])
+  @@map("writer_applications")
 }

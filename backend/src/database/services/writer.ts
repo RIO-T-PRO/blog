@@ -52,6 +52,35 @@ const findWriterByUserId = async (user_id: string): Promise<Writer | null> => {
   });
 };
 
+const promoteToWriter = async (userId: string): Promise<Writer> => {
+  const existingWriter = await prisma.writer.findUnique({
+    where: { user_id: userId },
+  });
+
+  if (existingWriter) {
+    throw new Error("User is already a writer.");
+  }
+
+  return prisma.writer.create({
+    data: {
+      user: {
+        connect: {
+          user_id: userId,
+        },
+      },
+    },
+    include: {
+      user: {
+        select: {
+          user_id: true,
+          fullname: true,
+          email: true,
+        },
+      },
+    },
+  });
+};
+
 const getWriterDashboard = async ({
   writer_id,
   page = 1,
@@ -111,5 +140,6 @@ export {
   deleteWriter,
   findWriterByUserId,
   getWriter,
+  promoteToWriter,
   getWriterDashboard,
 };

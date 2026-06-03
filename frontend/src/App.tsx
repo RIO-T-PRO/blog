@@ -1,5 +1,5 @@
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
 
 import HomePage from "@/pages/home";
 import LoginPage from "@/pages/auth/signin";
@@ -9,23 +9,22 @@ import NotFoundPage from "@/pages/not-found";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/home/search-modal";
-import DashboardPage from "./pages/dashboard";
 
-const PlaceholderPage = ({ title }: { title: string }) => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <h1 className="font-display text-4xl text-on-surface">{title}</h1>
-    </div>
-  );
-};
+import DashboardLayout from "@/dashboard-layout";
+
+import AdminDashboard from "@/components/admin/dashboard";
+import WriterDashboard from "@/components/writer/dashboard";
+import UserDashboard from "@/components/user/user";
+
+import { useAuth } from "@/lib/context/auth-context";
+import SettingsPage from "./pages/settings";
 
 const App = () => {
   const [searchOpen, setSearchOpen] = useState(false);
-
   const location = useLocation();
+  const { user } = useAuth();
 
   const authRoutes = ["/signin", "/signup"];
-
   const knownRoutes = [
     "/",
     "/essays",
@@ -39,34 +38,58 @@ const App = () => {
   ];
 
   const isAuthPage = authRoutes.includes(location.pathname);
-
   const isNotFoundPage = !knownRoutes.includes(location.pathname);
+  const isDashboard = location.pathname.startsWith("/dashboard");
 
-  const hideLayout = isAuthPage || isNotFoundPage;
+  const hideLayout = isAuthPage || isNotFoundPage || isDashboard;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* NAVBAR */}
       {!hideLayout && <Navbar onSearchOpen={() => setSearchOpen(true)} />}
 
-      {/* ROUTES */}
       <Routes>
+        {/* PUBLIC */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/essays" element={<PlaceholderPage title="Essays" />} />
-        <Route path="/culture" element={<PlaceholderPage title="Culture" />} />
-        <Route path="/science" element={<PlaceholderPage title="Science" />} />
-        <Route path="/archive" element={<PlaceholderPage title="Archive" />} />
+        <Route path="/essays" element={<div>Essays</div>} />
+        <Route path="/culture" element={<div>Culture</div>} />
+        <Route path="/science" element={<div>Science</div>} />
+        <Route path="/archive" element={<div>Archive</div>} />
+
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/signin" element={<LoginPage />} />
-        <Route path="/write" element={<PlaceholderPage title="Write" />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+
+        <Route path="/write" element={<div>Write</div>} />
+
+        {/* DASHBOARD WRAPPER */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          {/* HOME */}
+          <Route
+            index
+            element={
+              user?.admin ? (
+                <AdminDashboard />
+              ) : user?.writer ? (
+                <WriterDashboard />
+              ) : (
+                <UserDashboard />
+              )
+            }
+          />
+
+          {/* SETTINGS ROUTE */}
+          <Route path="settings" element={<SettingsPage />} />
+
+          {/* OPTIONAL FUTURE ROUTES
+          <Route path="posts" element={<div>Posts</div>} />
+          <Route path="users" element={<div>Users</div>} />
+          <Route path="activity" element={<div>Activity</div>} /> */}
+        </Route>
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
-      {/* FOOTER */}
       {!hideLayout && <Footer />}
 
-      {/* SEARCH MODAL */}
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
