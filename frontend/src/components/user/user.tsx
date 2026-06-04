@@ -1,83 +1,238 @@
-import { FaPenNib, FaGlobe, FaPaperPlane, FaInfoCircle } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import {
+  FaPenNib,
+  FaGlobe,
+  FaPaperPlane,
+  FaCheckCircle,
+  FaClock,
+  FaTimesCircle,
+} from "react-icons/fa";
+
+import { applyWriter, getMyWriterApplication } from "@/lib/api/auth";
+import type { WriterApplication } from "@/types/auth";
+
+type MessageType = "success" | "error" | null;
 
 const UserDashboard = () => {
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+  const [application, setApplication] = useState<WriterApplication | null>(
+    null,
+  );
+
+  const [form, setForm] = useState({
+    website: "",
+    motivation: "",
+  });
+
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<MessageType>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await getMyWriterApplication();
+
+        if (res?.data?.application) {
+          setApplication(res.data.application);
+        }
+      } catch (err) {
+        console.log("No existing application");
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    load();
+  }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (message) {
+      setMessage("");
+      setMessageType(null);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (loading) return;
+
+    setLoading(true);
+    setMessage("");
+    setMessageType(null);
+
+    try {
+      const res = await applyWriter({
+        website: form.website,
+        reason: form.motivation,
+      });
+
+      if (!res?.data?.application) {
+        throw new Error("Invalid response from server");
+      }
+
+      setApplication(res.data.application);
+
+      setMessage("Application submitted successfully.");
+      setMessageType("success");
+
+      setForm({
+        website: "",
+        motivation: "",
+      });
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to submit application.";
+
+      setMessage(errorMessage);
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const StatusView = () => {
+    if (!application) return null;
+
+    const status = application.status;
+
+    const config = {
+      pending: {
+        icon: <FaClock />,
+        color: "text-amber-600",
+        bg: "bg-amber-500/10",
+        text: "Pending Review",
+      },
+      approved: {
+        icon: <FaCheckCircle />,
+        color: "text-green-600",
+        bg: "bg-green-500/10",
+        text: "Approved",
+      },
+      rejected: {
+        icon: <FaTimesCircle />,
+        color: "text-red-600",
+        bg: "bg-red-500/10",
+        text: "Rejected",
+      },
+    }[status] || {
+      icon: <FaClock />,
+      color: "text-amber-600",
+      bg: "bg-amber-500/10",
+      text: "Pending",
+    };
+
+    return (
+      <div className="mb-6 p-4 rounded-xl border border-border-muted">
+        <div className={`flex items-center gap-2 ${config.color}`}>
+          {config.icon}
+          <span className="font-medium">{config.text}</span>
+        </div>
+      </div>
+    );
+  };
+
+  if (fetching) {
+    return <div className="p-6 text-text-secondary">Loading dashboard...</div>;
+  }
+
+  const hasApplication = !!application;
+
   return (
-    <div className="h-full flex flex-col px-6 md:px-10 py-6 overflow-hidden max-w-3xl mx-auto">
-      {/* HEADER (fixed height section) */}
-      <div className="shrink-0 mb-6">
-        <h1 className="text-3xl md:text-4xl font-display font-bold text-primary flex items-center gap-3">
+    <div className="max-w-3xl mx-auto px-6 md:px-10 py-6">
+      {/* HEADER */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-display font-bold text-primary flex items-center gap-3">
           <FaPenNib />
           Writer Application
         </h1>
 
-        <p className="text-text-secondary mt-2 leading-relaxed">
-          Apply to become a Chronicle writer. Share your ideas, perspective, and
-          what you want to contribute to the platform.
+        <p className="text-text-secondary mt-2">
+          Apply or track your writer application status.
         </p>
       </div>
 
-      {/* FORM CONTAINER (takes remaining space, no page scroll) */}
-      <div className="flex-1 min-h-0">
-        <form className="h-full flex flex-col bg-surface border border-border-muted rounded-2xl p-6 md:p-8 ambient-shadow">
-          {/* SCROLL ONLY INSIDE FORM IF NEEDED */}
-          <div className="flex-1 min-h-0 space-y-6 overflow-hidden">
-            {/* WEBSITE */}
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <FaGlobe className="text-text-secondary" />
-                Website (optional)
-              </label>
+      {/* STATUS */}
+      {hasApplication && <StatusView />}
 
-              <input
-                type="url"
-                placeholder="https://yourportfolio.com"
-                className="w-full rounded-xl border border-border-muted bg-surface px-4 py-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
-              />
+      {/* FORM OR INFO */}
+      {!hasApplication ? (
+        <form
+          onSubmit={handleSubmit}
+          className="bg-surface border border-border-muted rounded-2xl p-6 space-y-5"
+        >
+          {/* WEBSITE */}
+          <div>
+            <label className="flex items-center gap-2 text-sm mb-2">
+              <FaGlobe className="text-text-secondary" />
+              Website
+            </label>
 
-              <p className="text-xs text-text-secondary flex items-center gap-2">
-                <FaInfoCircle />
-                Portfolio, blog, or previous writing samples
-              </p>
-            </div>
-
-            {/* MOTIVATION */}
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <FaPenNib className="text-text-secondary" />
-                Why do you want to write for Chronicle?
-              </label>
-
-              <textarea
-                rows={5}
-                placeholder="Explain your motivation, topics you want to write about..."
-                className="w-full rounded-xl border border-border-muted bg-surface px-4 py-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition resize-none"
-              />
-
-              <p className="text-xs text-text-secondary">
-                Be specific and original.
-              </p>
-            </div>
+            <input
+              type="url"
+              name="website"
+              value={form.website}
+              onChange={handleChange}
+              className="w-full rounded-xl border border-border-muted px-4 py-3"
+              placeholder="https://yourportfolio.com"
+            />
           </div>
 
-          {/* ACTIONS (always visible, never pushed off screen) */}
-          <div className="shrink-0 pt-6 flex flex-col sm:flex-row gap-3 border-t border-border-muted">
-            <button
-              type="submit"
-              className="flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-xl hover:opacity-90 transition shadow-sm"
-            >
-              <FaPaperPlane />
-              Submit Application
-            </button>
+          {/* MOTIVATION */}
+          <div>
+            <label className="flex items-center gap-2 text-sm mb-2">
+              <FaPenNib className="text-text-secondary" />
+              Motivation
+            </label>
 
-            <button
-              type="button"
-              className="px-6 py-3 rounded-xl border border-border-muted text-text-secondary hover:bg-surface-container transition"
-            >
-              Save Draft
-            </button>
+            <textarea
+              name="motivation"
+              value={form.motivation}
+              onChange={handleChange}
+              rows={6}
+              className="w-full rounded-xl border border-border-muted px-4 py-3"
+              placeholder="Why do you want to write?"
+            />
           </div>
+
+          {/* MESSAGE */}
+          {message && (
+            <div
+              className={`p-3 rounded-xl text-sm ${
+                messageType === "success"
+                  ? "bg-green-500/10 text-green-600"
+                  : "bg-red-500/10 text-red-600"
+              }`}
+            >
+              {message}
+            </div>
+          )}
+
+          {/* SUBMIT */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl disabled:opacity-50"
+          >
+            <FaPaperPlane />
+            {loading ? "Submitting..." : "Submit Application"}
+          </button>
         </form>
-      </div>
+      ) : (
+        <div className="text-text-secondary text-sm">
+          You already submitted an application. You can track its status above.
+        </div>
+      )}
     </div>
   );
 };

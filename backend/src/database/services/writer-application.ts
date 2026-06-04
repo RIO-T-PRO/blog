@@ -32,4 +32,10 @@ const findApplicationByUserId = async (userId: string) => {
   });
 };
 
+export const findAllApplications = async () => {
+  return await prisma.writerApplication.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+};
+
 export { applyToBecomeWriter, findApplicationById, findApplicationByUserId };

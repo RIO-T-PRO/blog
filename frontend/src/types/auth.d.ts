@@ -76,3 +76,18 @@ export type AuthResponse = {
 //   bio?: string;
 //   avatar?: string;
 // };
+
+export type ApplyWriterPayload = {
+  website?: string;
+  reason: string;
+};
+
+export type WriterApplication = {
+  application_id: string;
+  user_id: string;
+  website?: string;
+  reason: string;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+  updatedAt: string;
+};

@@ -9,6 +9,7 @@ import commentRoutes from "@/routes/comment.js";
 import postRoutes from "@/routes/post.js";
 import adminRoutes from "@/routes/admin.js";
 import userProfileRoutes from "@/routes/profile.js";
+import applicationRoutes from "@/routes/writer-application.js";
 import userRoutes from "@/routes/user.js";
 import landingPageRoutes from "@/routes/landing-page.js";
 
@@ -33,6 +34,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/writer", writerRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/profile", userProfileRoutes);
+app.use("/api/application", applicationRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/comment", commentRoutes);
 

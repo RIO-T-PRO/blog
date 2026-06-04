@@ -31,14 +31,13 @@ const DashboardLayout = () => {
       navigate("/", { replace: true });
     } catch (err) {
       console.error("Logout failed:", err);
-      // still redirect just in case
       navigate("/", { replace: true });
     }
   };
 
   return (
     <div className="flex h-screen bg-background text-on-surface">
-      {/* SIDEBAR */}
+      {/* SIDEBAR (UNCHANGED) */}
       <aside className="flex w-72 flex-col border-r border-border-muted bg-surface-container/50">
         {/* BRAND */}
         <div className="border-b border-border-muted px-5 py-4">
@@ -53,9 +52,9 @@ const DashboardLayout = () => {
 
         {/* NAVIGATION */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          <NavLink to="/dashboard" end className={navClass}>
+          <NavLink to="/dashboard" className={navClass}>
             <FaPenNib className="text-sm" />
-            Dashboard
+            Application
           </NavLink>
 
           {(role === "writer" || role === "admin") && (
@@ -123,10 +122,21 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
-      {/* MAIN */}
-      <main className="flex-1 h-full overflow-y-auto">
-        <Outlet />
-      </main>
+      {/* MAIN AREA */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* TOP NAVBAR (NEW) */}
+        <header className="flex items-center justify-between border-b border-border-muted bg-surface-container/50 px-6 py-4">
+          {" "}
+          <h1 className="text-xl font-semibold text-on-surface">
+            Your Dashboard
+          </h1>
+        </header>
+
+        {/* PAGE CONTENT */}
+        <main className="flex-1 overflow-y-auto px-6 py-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

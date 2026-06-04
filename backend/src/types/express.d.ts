@@ -5,6 +5,7 @@ import {
   Writer,
   Comment,
   Post,
+  WriterApplication,
 } from "@/generated/prisma/client.ts";
 
 declare global {
@@ -22,6 +23,7 @@ declare global {
         isPostWriter?: boolean;
         isOwner?: boolean;
       };
+      application: WriterApplication;
     }
   }
 }
