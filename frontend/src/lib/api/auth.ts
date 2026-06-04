@@ -5,6 +5,8 @@ import type {
   AuthResponse,
   SignupPayload,
   SigninPayload,
+  WriterApplication,
+  ApplyWriterPayload,
 } from "@/types/auth";
 
 export const signup = (payload: SignupPayload) =>
@@ -34,3 +36,22 @@ export const logout = () =>
 //     method: "PATCH",
 //     body: JSON.stringify(payload),
 //   });
+
+export const applyWriter = (payload: ApplyWriterPayload) =>
+  apiFetch<{
+    status: string;
+    data: {
+      application: WriterApplication;
+    };
+  }>("/application/apply", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const getMyWriterApplication = () =>
+  apiFetch<{
+    status: string;
+    data: {
+      application: WriterApplication | null;
+    };
+  }>("/application/me");

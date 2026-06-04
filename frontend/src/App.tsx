@@ -25,6 +25,7 @@ const App = () => {
   const { user } = useAuth();
 
   const authRoutes = ["/signin", "/signup"];
+
   const knownRoutes = [
     "/",
     "/essays",
@@ -35,12 +36,13 @@ const App = () => {
     "/signin",
     "/write",
     "/dashboard",
+    "/dashboard/settings",
   ];
 
   const isAuthPage = authRoutes.includes(location.pathname);
   const isNotFoundPage = !knownRoutes.includes(location.pathname);
-  const isDashboard = location.pathname.startsWith("/dashboard");
 
+  const isDashboard = location.pathname.startsWith("/dashboard");
   const hideLayout = isAuthPage || isNotFoundPage || isDashboard;
 
   return (
@@ -54,10 +56,8 @@ const App = () => {
         <Route path="/culture" element={<div>Culture</div>} />
         <Route path="/science" element={<div>Science</div>} />
         <Route path="/archive" element={<div>Archive</div>} />
-
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/signin" element={<LoginPage />} />
-
         <Route path="/write" element={<div>Write</div>} />
 
         {/* DASHBOARD WRAPPER */}
@@ -76,13 +76,11 @@ const App = () => {
             }
           />
 
-          {/* SETTINGS ROUTE */}
+          {/* <Route path="posts" element={<PostsPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="activity" element={<ActivityPage />} />
+ */}
           <Route path="settings" element={<SettingsPage />} />
-
-          {/* OPTIONAL FUTURE ROUTES
-          <Route path="posts" element={<div>Posts</div>} />
-          <Route path="users" element={<div>Users</div>} />
-          <Route path="activity" element={<div>Activity</div>} /> */}
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
