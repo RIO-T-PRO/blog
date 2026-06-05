@@ -26,6 +26,7 @@ export type User = {
   user_id: string;
   fullname: string;
   email: string;
+  status: boolean;
   createdAt?: string;
   updatedAt?: string;
 
@@ -42,6 +43,11 @@ export type Profile = {
   updatedAt?: string;
 
   user: User;
+};
+
+export type UpdateProfilePayload = {
+  bio?: string;
+  avatar?: string;
 };
 
 export type ProfileResponse = {

@@ -52,7 +52,7 @@ const DashboardLayout = () => {
 
         {/* NAVIGATION */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          <NavLink to="/dashboard" className={navClass}>
+          <NavLink to="/dashboard" className={navClass} end>
             <FaPenNib className="text-sm" />
             Application
           </NavLink>
@@ -80,10 +80,7 @@ const DashboardLayout = () => {
         {/* FOOTER */}
         <div className="border-t border-border-muted p-3">
           <div className="space-y-1">
-            <NavLink
-              to="/dashboard/settings"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-text-secondary transition-all duration-200 hover:bg-surface hover:text-on-surface"
-            >
+            <NavLink to="/dashboard/settings" className={navClass}>
               <FaCog className="text-sm" />
               Settings
             </NavLink>

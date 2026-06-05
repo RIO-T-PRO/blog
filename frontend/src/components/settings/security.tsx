@@ -1,92 +1,183 @@
+import { useState } from "react";
 import { FaKey, FaShieldAlt, FaCheckCircle, FaTrashAlt } from "react-icons/fa";
+import { deleteUser } from "@/lib/api/auth";
 
 const SecuritySettings = () => {
+  const [loadingPassword, setLoadingPassword] = useState(false);
+  const [loading2FA, setLoading2FA] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const updatePassword = async () => {
+    setLoadingPassword(true);
+    setTimeout(() => setLoadingPassword(false), 1000);
+  };
+
+  const toggle2FA = async () => {
+    setLoading2FA(true);
+    setTimeout(() => setLoading2FA(false), 1000);
+  };
+
+  const deleteAccount = async () => {
+    try {
+      setLoadingDelete(true);
+
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      if (!user?.user_id) return;
+
+      await deleteUser(user.user_id);
+
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingDelete(false);
+      setConfirmDelete(false);
+    }
+  };
+
+  const inputClass =
+    "mt-1 w-full bg-background border border-border-muted rounded-lg px-4 py-2.5 " +
+    "transition-colors duration-150 " +
+    "hover:border-primary/60 " +
+    "focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary " +
+    "disabled:opacity-70";
+
   return (
-    <section className="space-y-8">
-      {/* TITLE */}
-      <div>
+    <section className="space-y-10 max-w-3xl mx-auto">
+      {/* HEADER */}
+      <header>
         <h2 className="font-headline-md text-headline-md text-on-background">
-          Security Settings
+          Security
         </h2>
-        <p className="text-text-secondary text-sm mt-1 font-body-standard">
-          Manage your password, authentication, and account security
+        <p className="text-sm text-text-secondary mt-2">
+          Control authentication and account safety
         </p>
-      </div>
+      </header>
 
-      {/* PASSWORD */}
-      <div className="bg-surface ambient-shadow rounded-xl p-8 border border-border-muted space-y-6">
-        <h3 className="font-label-ui text-text-primary font-semibold flex items-center gap-2">
-          <FaKey />
-          Password
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <input
-            type="password"
-            placeholder="Current Password"
-            className="w-full bg-background border border-border-muted rounded-lg px-4 py-2.5 font-body-standard"
-          />
-
-          <input
-            type="password"
-            placeholder="New Password"
-            className="w-full bg-background border border-border-muted rounded-lg px-4 py-2.5 font-body-standard"
-          />
-        </div>
-
-        <button className="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-label-ui hover:opacity-90 transition-opacity">
-          Update Password
-        </button>
-      </div>
-
-      {/* 2FA */}
-      <div className="bg-surface ambient-shadow rounded-xl p-8 border border-border-muted flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FaShieldAlt className="text-primary text-[18px]" />
+      {/* AUTH */}
+      <div className="bg-surface border border-border-muted rounded-xl p-6 md:p-8 space-y-6">
+        <div className="flex items-start gap-3">
+          <FaKey className="text-primary mt-1" />
           <div>
-            <p className="font-label-ui font-semibold text-text-primary">
-              Two-Factor Authentication
-            </p>
+            <h3 className="font-medium">Authentication</h3>
             <p className="text-sm text-text-secondary">
-              Add an extra layer of security to your account
+              Manage password and login protection
             </p>
           </div>
         </div>
 
-        <button className="px-6 py-2 border border-border-muted text-text-secondary rounded-lg font-label-ui hover:bg-surface-container-high transition-colors">
-          Enable
-        </button>
-      </div>
-
-      {/* STATUS */}
-      <div className="bg-surface ambient-shadow rounded-xl p-6 border border-border-muted flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FaCheckCircle className="text-status-success" />
-          <span className="font-label-ui text-sm text-text-primary">
-            Account security is strong
-          </span>
+        <div className="grid md:grid-cols-2 gap-4">
+          <input
+            type="password"
+            placeholder="Current password"
+            className={inputClass}
+          />
+          <input
+            type="password"
+            placeholder="New password"
+            className={inputClass}
+          />
         </div>
 
-        <span className="text-status-success font-semibold text-sm">
+        <div className="flex justify-end">
+          <button
+            onClick={updatePassword}
+            disabled={loadingPassword}
+            className="px-6 py-2.5 bg-primary text-on-primary rounded-lg disabled:opacity-60"
+          >
+            {loadingPassword ? "Updating..." : "Update Password"}
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t border-border-muted">
+          <div className="flex items-center gap-2">
+            <FaShieldAlt className="text-primary" />
+            <span className="text-sm">Two-Factor Authentication</span>
+          </div>
+
+          <button
+            onClick={toggle2FA}
+            disabled={loading2FA}
+            className="px-6 py-2.5 border border-border-muted rounded-lg hover:bg-surface-container transition-colors disabled:opacity-60"
+          >
+            {loading2FA ? "Processing..." : "Enable"}
+          </button>
+        </div>
+      </div>
+
+      {/* ACCOUNT HEALTH */}
+      <div className="bg-surface border border-border-muted rounded-xl p-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <FaCheckCircle className="text-status-success" />
+          <div>
+            <p className="font-medium">Account Security</p>
+            <p className="text-sm text-text-secondary">No issues detected</p>
+          </div>
+        </div>
+
+        <span className="px-3 py-1 text-xs rounded-full bg-status-success/10 text-status-success">
           Secure
         </span>
       </div>
 
-      {/* DANGER ZONE */}
-      <div className="p-8 border border-status-error/20 bg-status-error/5 rounded-xl flex items-center justify-between">
-        <div>
-          <h3 className="font-label-ui text-status-error font-bold text-[16px] mb-1 flex items-center gap-2">
-            <FaTrashAlt />
-            Delete Account
-          </h3>
-          <p className="text-[13px] text-on-surface-variant opacity-80 font-body-standard">
-            Permanently remove your account and all associated data.
-          </p>
+      {/* DANGER ZONE (CONSISTENT DESIGN FIXED) */}
+      <div className="bg-surface border border-border-muted rounded-xl p-6 space-y-4">
+        <div className="flex items-start gap-3">
+          <FaTrashAlt className="text-status-error mt-1" />
+          <div>
+            <h3 className="font-medium text-on-background">Danger Zone</h3>
+            <p className="text-sm text-text-secondary">
+              Irreversible actions that permanently affect your account
+            </p>
+          </div>
         </div>
 
-        <button className="px-6 py-2 border border-status-error/30 text-status-error rounded-lg font-label-ui text-[13px] hover:bg-status-error hover:text-on-error transition-all">
-          Delete
-        </button>
+        <div className="border border-border-muted rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Delete account</p>
+              <p className="text-sm text-text-secondary">
+                All your data will be permanently removed
+              </p>
+            </div>
+
+            {!confirmDelete ? (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="px-5 py-2.5 rounded-lg border border-status-error text-status-error hover:bg-status-error hover:text-on-error transition-colors"
+              >
+                Delete
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={loadingDelete}
+                  className="px-4 py-2 rounded-lg border border-border-muted hover:bg-surface-container transition-colors"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={deleteAccount}
+                  disabled={loadingDelete}
+                  className="px-4 py-2 rounded-lg bg-status-error text-on-error disabled:opacity-60"
+                >
+                  {loadingDelete ? "Deleting..." : "Confirm"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {confirmDelete && (
+            <p className="text-xs text-status-error">
+              This action cannot be undone.
+            </p>
+          )}
+        </div>
       </div>
     </section>
   );

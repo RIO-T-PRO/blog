@@ -36,6 +36,28 @@ const findUserByEmail = async (email: string) => {
   });
 };
 
+interface UpdateUserParams {
+  userId: string;
+  fullname?: string;
+  email?: string;
+}
+
+const updateUser = async ({
+  userId,
+  fullname,
+  email,
+}: UpdateUserParams): Promise<User> => {
+  const data: any = {};
+
+  if (fullname) data.fullname = fullname;
+  if (email) data.email = email;
+
+  return prisma.user.update({
+    where: { user_id: userId },
+    data,
+  });
+};
+
 const getUserDashboard = async ({
   userId,
   page = 1,
@@ -95,4 +117,22 @@ const getUserDashboard = async ({
   };
 };
 
-export { createUser, findUserById, findUserByEmail, getUserDashboard };
+const softDeleteUser = async (userId: string): Promise<User> => {
+  return prisma.user.update({
+    where: {
+      user_id: userId,
+    },
+    data: {
+      active: false,
+    },
+  });
+};
+
+export {
+  createUser,
+  updateUser,
+  findUserById,
+  findUserByEmail,
+  getUserDashboard,
+  softDeleteUser,
+};
