@@ -193,7 +193,7 @@ const Navbar = ({ onSearchOpen }: NavbarProps) => {
                     <Link
                       className="flex items-center gap-3 rounded-xl px-4 py-3 font-ui text-sm text-on-surface-variant transition-all duration-200 hover:bg-surface-container hover:text-on-surface"
                       onClick={() => setDropdownOpen(false)}
-                      to="/profile"
+                      to="/dashboard/settings"
                     >
                       <FaUser className="text-sm" />
                       Profile

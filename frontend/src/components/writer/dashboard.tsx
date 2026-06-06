@@ -1,7 +1,4 @@
 import WriterSidebar from "@/components/writer/sidebar";
-import WriterStats from "@/components/writer/stats";
-import StoryCard from "@/components/writer/story-card";
-import { stories } from "@/lib/data";
 
 const WriterDashboard = () => {
   return (
@@ -37,13 +34,6 @@ const WriterDashboard = () => {
                   </button>
                 </div>
               </div>
-
-              <div className="grid w-full max-w-md grid-cols-2 gap-4">
-                <WriterStats label="Published" value="48" />
-                <WriterStats label="Drafts" value="12" />
-                <WriterStats label="Readers" value="24.8k" />
-                <WriterStats label="Engagement" value="87%" />
-              </div>
             </div>
           </section>
 
@@ -63,12 +53,6 @@ const WriterDashboard = () => {
               <button className="rounded-xl border border-border-muted bg-surface px-5 py-3 font-ui text-sm font-medium text-on-surface transition-all hover:bg-surface-container">
                 View All
               </button>
-            </div>
-
-            <div className="space-y-5">
-              {stories.map((story) => (
-                <StoryCard key={story.id} {...story} />
-              ))}
             </div>
           </section>
         </main>

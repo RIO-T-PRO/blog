@@ -7,7 +7,9 @@ import {
   updatePost,
   deletePost,
   getPost,
+  getPosts,
 } from "@/controllers/post.js";
+
 import {
   createPostSchema,
   postIdParamSchema,
@@ -18,15 +20,14 @@ const router = Router();
 
 router.use(authMiddleware);
 
-router.get(
-  "/:postId",
-  validate(postIdParamSchema, "params"),
-  verifyWriter,
-  getPost,
-);
+router.get("/", verifyWriter, getPosts);
+// single post
+router.get("/:postId", validate(postIdParamSchema, "params"), getPost);
 
+// create
 router.post("/", validate(createPostSchema, "body"), verifyWriter, createPost);
 
+// update
 router.put(
   "/:postId",
   validate(postIdParamSchema, "params"),
@@ -35,6 +36,7 @@ router.put(
   updatePost,
 );
 
+// delete
 router.delete(
   "/:postId",
   validate(postIdParamSchema, "params"),

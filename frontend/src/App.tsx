@@ -18,6 +18,8 @@ import UserDashboard from "@/components/user/user";
 
 import { useAuth } from "@/lib/context/auth-context";
 import SettingsPage from "./pages/settings";
+import PostEditor from "./components/writer/editor";
+import WriterPosts from "./components/writer/writer-posts";
 
 const App = () => {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -34,9 +36,10 @@ const App = () => {
     "/archive",
     "/signup",
     "/signin",
-    "/write",
     "/dashboard",
     "/dashboard/settings",
+    "/dashboard/write",
+    "/dashboard/writer/posts",
   ];
 
   const isAuthPage = authRoutes.includes(location.pathname);
@@ -58,11 +61,10 @@ const App = () => {
         <Route path="/archive" element={<div>Archive</div>} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/signin" element={<LoginPage />} />
-        <Route path="/write" element={<div>Write</div>} />
 
-        {/* DASHBOARD WRAPPER */}
+        <Route path="/dashboard/write" element={<PostEditor />} />
+
         <Route path="/dashboard" element={<DashboardLayout />}>
-          {/* HOME */}
           <Route
             index
             element={
@@ -76,11 +78,9 @@ const App = () => {
             }
           />
 
-          {/* <Route path="posts" element={<PostsPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="activity" element={<ActivityPage />} />
- */}
           <Route path="settings" element={<SettingsPage />} />
+
+          <Route path="writer/editor" element={<PostEditor />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
