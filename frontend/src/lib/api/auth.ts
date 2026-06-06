@@ -7,6 +7,7 @@ import type {
   SigninPayload,
   WriterApplication,
   ApplyWriterPayload,
+  UpdateProfilePayload,
 } from "@/types/auth";
 
 export const signup = (payload: SignupPayload) =>
@@ -21,7 +22,28 @@ export const signin = (payload: SigninPayload) =>
     body: JSON.stringify(payload),
   });
 
+export const updateUser = (
+  userId: string,
+  payload: {
+    fullname: string;
+    email: string;
+  },
+) =>
+  apiFetch(`/user/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+
 export const getProfile = () => apiFetch<ProfileResponse>("/profile");
+
+export const updateProfile = (
+  profileId: string,
+  payload: UpdateProfilePayload,
+) =>
+  apiFetch(`/profile/${profileId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
 
 export const logout = () =>
   apiFetch<{ message: string }>("/auth/logout", {
@@ -36,6 +58,11 @@ export const logout = () =>
 //     method: "PATCH",
 //     body: JSON.stringify(payload),
 //   });
+
+export const deleteUser = (userId: string) =>
+  apiFetch<{ message: string }>(`/user/${userId}`, {
+    method: "DELETE",
+  });
 
 export const applyWriter = (payload: ApplyWriterPayload) =>
   apiFetch<{

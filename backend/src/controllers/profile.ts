@@ -10,7 +10,11 @@ import {
   findProfileByUserId,
 } from "@/database/services/profile.js";
 
-import { CreateProfileBody, ProfileIdParam } from "@/schemas/profile.js";
+import {
+  CreateProfileBody,
+  ProfileIdParam,
+  UpdateProfileBody,
+} from "@/schemas/profile.js";
 
 /* CREATE PROFILE */
 const createUserProfile = async (
@@ -90,6 +94,7 @@ const getCurrentUserProfile = async (
                 user_id: profile.user.user_id,
                 fullname: profile.user.fullname,
                 email: profile.user.email,
+                status: profile.user.status,
 
                 writer: profile.user.writer,
                 admin: profile.user.admin,
@@ -174,8 +179,12 @@ const updateUserProfile = async (
 ): Promise<Response> => {
   try {
     const { profileId } = req.params as ProfileIdParam;
+    const update = req.body as UpdateProfileBody;
 
-    const updatedProfile = await updateProfileService(profileId, req.body);
+    console.log("profileId:", profileId);
+    console.log("body:", req.body);
+
+    const updatedProfile = await updateProfileService(profileId, update);
 
     return res.status(200).json({
       status: "success",

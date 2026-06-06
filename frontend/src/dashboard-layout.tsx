@@ -1,4 +1,5 @@
-import { Outlet, Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   FaHome,
   FaPenNib,
@@ -7,39 +8,150 @@ import {
   FaCog,
   FaSignOutAlt,
 } from "react-icons/fa";
+import type { IconType } from "react-icons";
 
 import { useAuth } from "@/lib/context/auth-context";
 import Avatar from "@/components/avatar";
+import WriterPosts from "./components/writer/writer-posts";
+import UserDashboard from "./components/user/user";
+import PostEditor from "./components/writer/editor";
+import SettingsPage from "./pages/settings";
+
+type Role = "admin" | "writer" | "user";
+
+type DashboardTab =
+  | "application"
+  | "write"
+  | "posts"
+  | "users"
+  | "activity"
+  | "settings"
+  | "admin-dashboard";
+
+type NavItem = {
+  tab: DashboardTab;
+  icon: IconType;
+  label: string;
+};
+
+const VIEW_LABELS: Record<DashboardTab, string> = {
+  application: "Application",
+  write: "Write",
+  posts: "My Posts",
+  users: "Users",
+  activity: "Activity",
+  settings: "Settings",
+  "admin-dashboard": "Admin Dashboard",
+};
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const role = user?.admin ? "admin" : user?.writer ? "writer" : "user";
+  const role: Role = user?.admin ? "admin" : user?.writer ? "writer" : "user";
 
-  const navClass = ({ isActive }: { isActive: boolean }) =>
+  const defaultTabByRole: Record<Role, DashboardTab> = {
+    user: "application",
+    writer: "write",
+    admin: "admin-dashboard",
+  };
+
+  const navItems: Record<Role, NavItem[]> = {
+    user: [
+      { tab: "application", icon: FaPenNib, label: "Application" },
+      { tab: "activity", icon: FaChartLine, label: "Activity" },
+    ],
+    writer: [
+      { tab: "write", icon: FaPenNib, label: "Write" },
+      { tab: "posts", icon: FaPenNib, label: "My Posts" },
+      { tab: "activity", icon: FaChartLine, label: "Activity" },
+    ],
+    admin: [
+      { tab: "admin-dashboard", icon: FaChartLine, label: "Admin Dashboard" },
+      { tab: "posts", icon: FaPenNib, label: "Posts" },
+      { tab: "users", icon: FaUsers, label: "Users" },
+      { tab: "activity", icon: FaChartLine, label: "Activity" },
+    ],
+  };
+
+  const allowedTabs = useMemo(
+    () => [...navItems[role].map((item) => item.tab), "settings" as const],
+    [role],
+  );
+
+  const currentTab =
+    (searchParams.get("tab") as DashboardTab | null) ?? defaultTabByRole[role];
+
+  useEffect(() => {
+    const tab = searchParams.get("tab") as DashboardTab | null;
+
+    if (!tab) {
+      setSearchParams({ tab: defaultTabByRole[role] }, { replace: true });
+      return;
+    }
+
+    if (!allowedTabs.includes(tab)) {
+      setSearchParams({ tab: defaultTabByRole[role] }, { replace: true });
+    }
+  }, [allowedTabs, defaultTabByRole, role, searchParams, setSearchParams]);
+
+  const navClass = (active: boolean) =>
     [
-      "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-      isActive
+      "flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+      active
         ? "bg-primary text-white"
         : "text-text-secondary hover:bg-surface hover:text-on-surface",
     ].join(" ");
 
+  const navigateTo = (tab: DashboardTab) => {
+    setSearchParams({ tab }, { replace: false });
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/", { replace: true });
     } catch (err) {
       console.error("Logout failed:", err);
+    } finally {
       navigate("/", { replace: true });
+    }
+  };
+
+  const pageTitle = VIEW_LABELS[currentTab] ?? "Your Dashboard";
+
+  const renderContent = () => {
+    switch (currentTab) {
+      case "application":
+        return <UserDashboard />;
+
+      case "write":
+        return <PostEditor />;
+
+      case "posts":
+        return <WriterPosts />;
+
+      case "users":
+        return <div>Users</div>;
+
+      case "activity":
+        return <div>Activity</div>;
+
+      case "settings":
+        return <SettingsPage />;
+
+      case "admin-dashboard":
+        return <div>Admin Dashboard</div>;
+
+      default:
+        return null;
     }
   };
 
   return (
     <div className="flex h-screen bg-background text-on-surface">
-      {/* SIDEBAR (UNCHANGED) */}
+      {/* SIDEBAR */}
       <aside className="flex w-72 flex-col border-r border-border-muted bg-surface-container/50">
-        {/* BRAND */}
         <div className="border-b border-border-muted px-5 py-4">
           <Link
             to="/"
@@ -50,47 +162,35 @@ const DashboardLayout = () => {
           </Link>
         </div>
 
-        {/* NAVIGATION */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          <NavLink to="/dashboard" className={navClass}>
-            <FaPenNib className="text-sm" />
-            Application
-          </NavLink>
-
-          {(role === "writer" || role === "admin") && (
-            <NavLink to="/dashboard/posts" className={navClass}>
-              <FaPenNib className="text-sm" />
-              Posts
-            </NavLink>
-          )}
-
-          {role === "admin" && (
-            <NavLink to="/dashboard/users" className={navClass}>
-              <FaUsers className="text-sm" />
-              Users
-            </NavLink>
-          )}
-
-          <NavLink to="/dashboard/activity" className={navClass}>
-            <FaChartLine className="text-sm" />
-            Activity
-          </NavLink>
+          {navItems[role].map(({ tab, icon: Icon, label }) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => navigateTo(tab)}
+              className={navClass(currentTab === tab)}
+            >
+              <Icon className="text-sm" />
+              {label}
+            </button>
+          ))}
         </nav>
 
-        {/* FOOTER */}
         <div className="border-t border-border-muted p-3">
           <div className="space-y-1">
-            <NavLink
-              to="/dashboard/settings"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-text-secondary transition-all duration-200 hover:bg-surface hover:text-on-surface"
+            <button
+              type="button"
+              onClick={() => navigateTo("settings")}
+              className={navClass(currentTab === "settings")}
             >
               <FaCog className="text-sm" />
               Settings
-            </NavLink>
+            </button>
 
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-danger transition-all duration-200 hover:bg-danger-container active:scale-[0.98]"
+              type="button"
             >
               <FaSignOutAlt className="text-sm" />
               Logout
@@ -99,7 +199,6 @@ const DashboardLayout = () => {
 
           <div className="my-3 border-t border-border-muted" />
 
-          {/* USER */}
           <div className="flex items-center gap-3 px-2 py-1">
             <Avatar
               id={user?.user_id}
@@ -113,7 +212,6 @@ const DashboardLayout = () => {
               <p className="truncate font-ui text-sm font-semibold text-on-surface">
                 {user?.fullname}
               </p>
-
               <p className="truncate text-xs text-text-secondary">
                 {user?.email}
               </p>
@@ -122,19 +220,20 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
-      {/* MAIN AREA */}
+      {/* MAIN */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* TOP NAVBAR (NEW) */}
+        {/* TOP BAR */}
         <header className="flex items-center justify-between border-b border-border-muted bg-surface-container/50 px-6 py-4">
-          {" "}
-          <h1 className="text-xl font-semibold text-on-surface">
-            Your Dashboard
-          </h1>
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold text-on-surface truncate">
+              {pageTitle}
+            </h1>
+          </div>
         </header>
 
-        {/* PAGE CONTENT */}
+        {/* CONTENT */}
         <main className="flex-1 overflow-y-auto px-6 py-6">
-          <Outlet />
+          <div className="mx-auto max-w-6xl">{renderContent()}</div>
         </main>
       </div>
     </div>

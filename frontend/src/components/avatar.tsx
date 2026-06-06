@@ -6,19 +6,13 @@ const ACCENT_COLORS = [
   "#9B7FE8",
 ] as const;
 
-type AvatarSize = 7 | 8 | 9 | 10 | 11 | 12;
-
-type AvatarRounded = "full" | "xl" | "2xl";
-
-// eslint-disable-next-line react-refresh/only-export-components
 export const accentFor = (id?: string) => {
-  if (!id?.trim()) {
-    return ACCENT_COLORS[0];
-  }
+  if (!id?.trim()) return ACCENT_COLORS[0];
 
-  const hash = [...id].reduce((acc, char) => {
-    return acc + char.charCodeAt(0);
-  }, 0);
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
 
   return ACCENT_COLORS[hash % ACCENT_COLORS.length];
 };
@@ -26,24 +20,20 @@ export const accentFor = (id?: string) => {
 const initials = (name?: string, email?: string) => {
   if (name?.trim()) {
     const parts = name.trim().split(/\s+/);
-
-    // FIRST + LAST INITIAL
     if (parts.length >= 2) {
-      return `${parts[0][0] ?? ""}${
-        parts[parts.length - 1][0] ?? ""
-      }`.toUpperCase();
+      return (
+        (parts[0][0] ?? "") + (parts[parts.length - 1][0] ?? "")
+      ).toUpperCase();
     }
-
-    // SINGLE NAME
     return parts[0].slice(0, 2).toUpperCase();
   }
 
-  if (email?.trim()) {
-    return email.trim().slice(0, 2).toUpperCase();
-  }
-
+  if (email?.trim()) return email.slice(0, 2).toUpperCase();
   return "?";
 };
+
+type AvatarSize = 7 | 8 | 9 | 10 | 11 | 12;
+type AvatarRounded = "full" | "xl" | "2xl";
 
 interface AvatarProps {
   name?: string;
@@ -53,7 +43,6 @@ interface AvatarProps {
   size?: AvatarSize;
   rounded?: AvatarRounded;
   className?: string;
-  textSize?: string;
   clickable?: boolean;
 }
 
@@ -67,8 +56,8 @@ const dimensions: Record<AvatarSize, string> = {
 };
 
 const fontSizes: Record<AvatarSize, string> = {
-  7: "text-[9px]",
-  8: "text-[10px]",
+  7: "text-[10px]",
+  8: "text-xs",
   9: "text-xs",
   10: "text-sm",
   11: "text-sm",
@@ -87,9 +76,8 @@ export const Avatar = ({
   avatar,
   id,
   size = 9,
-  rounded = "xl",
+  rounded = "full",
   className = "",
-  textSize,
   clickable = false,
 }: AvatarProps) => {
   const color = accentFor(id ?? name ?? email);
@@ -100,16 +88,15 @@ export const Avatar = ({
       tabIndex={clickable ? 0 : undefined}
       aria-label={name ?? email ?? "User avatar"}
       className={[
-        "group relative shrink-0 overflow-hidden",
-        "border border-border-muted/60 bg-surface",
-        "transition-all duration-300",
+        "relative shrink-0 overflow-hidden",
+        "border border-border-muted/70",
+        "bg-surface shadow-sm",
+        "transition-all duration-200",
+        "focus:outline-none focus:ring-2 focus:ring-primary/30",
+        "active:scale-[0.98]",
         dimensions[size],
         radius[rounded],
-
-        clickable
-          ? "cursor-pointer hover:border-primary/30 hover:shadow-sm"
-          : "",
-
+        clickable ? "cursor-pointer hover:shadow-md" : "",
         className,
       ].join(" ")}
     >
@@ -119,27 +106,29 @@ export const Avatar = ({
           alt={name ?? "Avatar"}
           loading="lazy"
           className={[
-            "h-full w-full object-cover transition-transform duration-500",
-            clickable ? "group-hover:scale-[1.03]" : "",
+            "h-full w-full object-cover",
+            "transition-transform duration-300",
+            clickable ? "hover:scale-[1.05]" : "",
           ].join(" ")}
         />
       ) : (
         <div
           className={[
             "flex h-full w-full items-center justify-center",
-            "font-ui font-semibold uppercase text-white",
-            textSize ?? fontSizes[size],
+            "font-semibold uppercase text-white",
+            fontSizes[size],
           ].join(" ")}
           style={{
-            background: `linear-gradient(135deg, ${color}, ${color}dd)`,
+            background: `radial-gradient(circle at top left, ${color}, ${color}cc)`,
           }}
         >
           {initials(name, email)}
         </div>
       )}
 
+      {/* STRONGER HOVER FEEDBACK */}
       {clickable && (
-        <div className="pointer-events-none absolute inset-0 bg-white/0 transition-colors duration-300 group-hover:bg-white/5" />
+        <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition" />
       )}
     </div>
   );

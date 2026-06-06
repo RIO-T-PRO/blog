@@ -35,7 +35,7 @@ app.use("/api/writer", writerRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/profile", userProfileRoutes);
 app.use("/api/application", applicationRoutes);
-app.use("/api/posts", postRoutes);
+app.use("/api/post", postRoutes);
 app.use("/api/comment", commentRoutes);
 
 const PORT = process.env.PORT || 3000;

@@ -1,8 +1,17 @@
-import { userDashboard } from "@/controllers/user.js";
+import {
+  userDashboard,
+  updateUserController,
+  deleteUserController,
+} from "@/controllers/user.js";
 import { authMiddleware } from "@/middlewares/auth.js";
 import { validate } from "@/middlewares/validate.js";
 import { verifyUser } from "@/middlewares/verify-user.js";
-import { dashboardParamsSchema, dashboardQuerySchema } from "@/schemas/user.js";
+import {
+  dashboardParamsSchema,
+  dashboardQuerySchema,
+  updateUserParamsSchema,
+  updateUserBodySchema,
+} from "@/schemas/user.js";
 import { Router } from "express";
 
 const router = Router();
@@ -15,6 +24,21 @@ router.get(
   validate(dashboardQuerySchema, "query"),
   verifyUser,
   userDashboard,
+);
+
+router.put(
+  "/:userId",
+  validate(updateUserParamsSchema, "params"),
+  validate(updateUserBodySchema, "body"),
+  verifyUser,
+  updateUserController,
+);
+
+router.delete(
+  "/:userId",
+  validate(updateUserParamsSchema, "params"),
+  verifyUser,
+  deleteUserController,
 );
 
 export default router;

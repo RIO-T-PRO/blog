@@ -7,6 +7,37 @@ const findPostById = async (postId: string): Promise<Post | null> => {
   });
 };
 
+const findPosts = async (params: {
+  page: number;
+  limit: number;
+  writer_id?: string;
+}) => {
+  const { page, limit, writer_id } = params;
+
+  const skip = (page - 1) * limit;
+
+  const [posts, total] = await Promise.all([
+    prisma.post.findMany({
+      where: writer_id ? { writer_id } : undefined,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+
+    prisma.post.count({
+      where: writer_id ? { writer_id } : undefined,
+    }),
+  ]);
+
+  return {
+    posts,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
+};
+
 const createPost = async (data: {
   title: string;
   slug: string;
@@ -42,4 +73,4 @@ const deletePost = async (post_id: string) => {
   return prisma.post.delete({ where: { post_id } });
 };
 
-export { findPostById, createPost, updatePost, deletePost };
+export { findPostById, findPosts, createPost, updatePost, deletePost };

@@ -194,3 +194,17 @@ body {
   color: var(--color-on-surface);
   font-family: var(--font-family-body);
 }
+
+/* hidden scrollbar utility */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+button {
+  cursor: pointer;
+}
