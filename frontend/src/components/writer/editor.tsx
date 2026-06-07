@@ -91,15 +91,14 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-on-surface">
-      {/* MAIN SCROLL AREA */}
-      <main className="flex-1 min-w-0 h-full overflow-y-auto scrollbar-hidden px-6 py-16">
+    <div className="flex h-full min-h-0 overflow-hidden bg-background text-on-surface">
+      <main className="flex-1 min-w-0 min-h-0 overflow-y-auto scrollbar-hidden px-6 py-16">
         <div className="max-w-195 mx-auto">
           {form.cover_image && (
             <img
               src={form.cover_image}
               alt="Cover"
-              className="w-full max-h-95 object-cover rounded-2xl mb-10"
+              className="mb-10 max-h-95 w-full rounded-2xl object-cover"
             />
           )}
 
@@ -109,10 +108,10 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
             suppressContentEditableWarning
             onInput={sync}
             data-placeholder="Untitled story..."
-            className="font-display-lg text-[46px] leading-[1.05] tracking-[-0.02em] outline-none mb-6 empty:before:content-[attr(data-placeholder)]"
+            className="font-display-lg mb-6 text-[46px] leading-[1.05] tracking-[-0.02em] outline-none empty:before:content-[attr(data-placeholder)]"
           />
 
-          <div className="flex items-center gap-4 text-xs text-text-secondary mb-10">
+          <div className="mb-10 flex items-center gap-4 text-xs text-text-secondary">
             <span className="uppercase tracking-wide">
               {form.slug || "auto-slug"}
             </span>
@@ -139,13 +138,12 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
             suppressContentEditableWarning
             onInput={sync}
             data-placeholder="Start writing..."
-            className="font-body-reading text-[20px] leading-9 tracking-[0.01em] outline-none empty:before:content-[attr(data-placeholder)] whitespace-pre-wrap wrap-break-word overflow-wrap-anywhere min-h-125"
+            className="font-body-reading min-h-125 whitespace-pre-wrap text-[20px] leading-9 tracking-[0.01em] outline-none empty:before:content-[attr(data-placeholder)] wrap-break-word overflow-wrap-anywhere"
           />
         </div>
       </main>
 
-      {/* SIDEBAR (NO SCROLL) */}
-      <aside className="w-80 shrink-0 h-full border-l border-border-muted bg-surface-container/30 px-5 py-6 flex flex-col gap-8">
+      <aside className="w-80 shrink-0 overflow-hidden border-l border-border-muted bg-surface-container/30 px-5 py-6 flex flex-col gap-6">
         <div className="space-y-1">
           <h2 className="text-xs uppercase tracking-widest text-on-surface-variant">
             Post Inspector
@@ -156,14 +154,14 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
         <div className="flex flex-col gap-2">
           <button
             onClick={save}
-            className="w-full py-2.5 rounded-lg border border-border-muted hover:bg-surface transition text-sm"
+            className="w-full rounded-lg border border-border-muted py-2.5 text-sm transition hover:bg-surface"
           >
             Save Draft
           </button>
 
           <button
             onClick={publish}
-            className="w-full py-2.5 rounded-lg bg-primary text-white text-sm"
+            className="w-full rounded-lg bg-primary py-2.5 text-sm text-white"
           >
             Publish
           </button>
@@ -180,7 +178,7 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
             onChange={(e) =>
               setForm((prev) => ({ ...prev, slug: e.target.value }))
             }
-            className="w-full p-2.5 rounded-lg bg-surface border border-border-muted outline-none text-sm"
+            className="w-full rounded-lg border border-border-muted bg-surface p-2.5 text-sm outline-none"
           />
         </div>
 
@@ -193,15 +191,15 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
             onChange={(e) =>
               setForm((prev) => ({ ...prev, cover_image: e.target.value }))
             }
-            className="w-full p-2.5 rounded-lg bg-surface border border-border-muted outline-none text-sm"
+            className="w-full rounded-lg border border-border-muted bg-surface p-2.5 text-sm outline-none"
           />
         </div>
 
-        <div className="mt-auto p-4 rounded-xl bg-surface border border-border-muted">
+        <div className="rounded-xl border border-border-muted bg-surface p-4">
           <div className="text-sm font-medium">
             {form.published ? "Published" : "Draft"}
           </div>
-          <div className="text-xs text-text-secondary mt-1 leading-5">
+          <div className="mt-1 text-xs leading-5 text-text-secondary">
             {form.published
               ? "This post is visible to everyone"
               : "This post is only visible to you"}

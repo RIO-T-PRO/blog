@@ -149,9 +149,8 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background text-on-surface">
-      {/* SIDEBAR */}
-      <aside className="flex w-72 flex-col border-r border-border-muted bg-surface-container/50">
+    <div className="flex h-screen min-h-0 overflow-hidden bg-background text-on-surface">
+      <aside className="flex w-72 shrink-0 flex-col border-r border-border-muted bg-surface-container/50">
         <div className="border-b border-border-muted px-5 py-4">
           <Link
             to="/"
@@ -220,21 +219,26 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
-      {/* MAIN */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* TOP BAR */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <header className="flex items-center justify-between border-b border-border-muted bg-surface-container/50 px-6 py-4">
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-on-surface truncate">
+            <h1 className="truncate text-xl font-semibold text-on-surface">
               {pageTitle}
             </h1>
           </div>
         </header>
 
-        {/* CONTENT */}
-        <main className="flex-1 overflow-y-auto px-6 py-6">
-          <div className="mx-auto max-w-6xl">{renderContent()}</div>
-        </main>
+        {currentTab === "write" ? (
+          <main className="flex-1 min-h-0 overflow-hidden">
+            <div className="h-full min-h-0">{renderContent()}</div>
+          </main>
+        ) : (
+          <main className="flex-1 min-h-0 overflow-hidden">
+            <div className="h-full overflow-y-auto scrollbar-hidden px-6 py-6">
+              <div className="mx-auto max-w-6xl">{renderContent()}</div>
+            </div>
+          </main>
+        )}
       </div>
     </div>
   );
