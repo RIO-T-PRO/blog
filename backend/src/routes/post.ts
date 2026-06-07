@@ -1,3 +1,4 @@
+// src/routes/post.routes.ts
 import { Router } from "express";
 import { validate } from "@/middlewares/validate.js";
 import { authMiddleware } from "@/middlewares/auth.js";
@@ -21,13 +22,19 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get("/", verifyWriter, getPosts);
-// single post
-router.get("/:postId", validate(postIdParamSchema, "params"), getPost);
 
-// create
+// Get single post – verifyWriter will load the post and set permissions
+router.get(
+  "/:postId",
+  validate(postIdParamSchema, "params"),
+  verifyWriter,
+  getPost,
+);
+
+// Create post
 router.post("/", validate(createPostSchema, "body"), verifyWriter, createPost);
 
-// update
+// Update post
 router.put(
   "/:postId",
   validate(postIdParamSchema, "params"),
@@ -36,7 +43,7 @@ router.put(
   updatePost,
 );
 
-// delete
+// Delete post
 router.delete(
   "/:postId",
   validate(postIdParamSchema, "params"),

@@ -29,28 +29,10 @@ export const deletePost = (postId: string) =>
 
 // GET SINGLE
 export const getPost = (postId: string) =>
-  apiFetch<PostResponse>(`/post/${postId}`, {
+  apiFetch<PostResponse>(`/post/${postId}`, { method: "GET" });
+
+// GET ALL
+export const getAllPosts = (page = 1, limit = 10) =>
+  apiFetch<PostsResponse>(`/post?page=${page}&limit=${limit}`, {
     method: "GET",
   });
-
-export const getAllPosts = async (page = 1, limit = 10) => {
-  const res = await apiFetch<PostsResponse>(
-    `/post?page=${page}&limit=${limit}`,
-    {
-      method: "GET",
-    },
-  );
-
-  if (!res) return null;
-
-  return {
-    ...res,
-    data: {
-      ...res.data,
-      posts: res.data.posts.map((p: any) => ({
-        ...p,
-        id: p.post_id,
-      })),
-    },
-  };
-};

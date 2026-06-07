@@ -1,20 +1,41 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { FaExclamationTriangle } from "react-icons/fa";
 
 import type { PostEditorForm } from "@/types/post";
-import { createPost, updatePost } from "@/lib/api/posts";
+import { createPost, updatePost, getPost } from "@/lib/api/posts";
 
 type PostEditorProps = {
-  initial?: Partial<PostEditorForm & { id?: string }>;
+  initial?: Partial<PostEditorForm>;
   onSave?: (data: PostEditorForm) => void | Promise<void>;
   onPublish?: (data: PostEditorForm) => void | Promise<void>;
 };
 
 const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const postIdFromUrl = searchParams.get("postId");
+
   const titleRef = useRef<HTMLHeadingElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const [form, setForm] = useState<PostEditorForm & { id?: string }>({
-    id: (initial as any)?.id,
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [loading, setLoading] = useState(!!postIdFromUrl && !initial?.post_id);
+
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [publishMsg, setPublishMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [slugError, setSlugError] = useState<string | null>(null);
+  const [publishSlugError, setPublishSlugError] = useState<string | null>(null);
+
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+  const clearTimeoutRef = useRef<number | null>(null);
+  const syncingRef = useRef(false);
+
+  const [form, setForm] = useState<PostEditorForm>({
+    post_id: initial?.post_id,
     title: initial?.title || "",
     slug: initial?.slug || "",
     excerpt: initial?.excerpt || "",
@@ -23,15 +44,71 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
     published: initial?.published || false,
   });
 
-  const sync = () => {
-    const title = titleRef.current?.innerText || "";
-    const content = contentRef.current?.innerHTML || "";
+  const isEditing = Boolean(form.post_id);
+  const isFormValid =
+    form.title.trim().length > 0 && form.content.trim().length > 0;
 
-    setForm((prev) => ({
-      ...prev,
-      title,
-      content,
-    }));
+  // Fetch post if editing
+  useEffect(() => {
+    if (postIdFromUrl && !initial?.post_id) {
+      const fetchPost = async () => {
+        try {
+          setLoading(true);
+          const res = await getPost(postIdFromUrl);
+          const post = res.data.post;
+          setForm({
+            post_id: post.post_id,
+            title: post.title || "",
+            slug: post.slug || "",
+            excerpt: post.excerpt || "",
+            content: post.content || "",
+            cover_image: post.cover_image || "",
+            published: post.published,
+          });
+          setSlugManuallyEdited(true); // preserve original slug
+        } catch (err: any) {
+          console.error(err);
+          if (err.response?.status === 404) {
+            setErrorMsg("Post not found. It may have been deleted.");
+          } else if (err.response?.status === 403) {
+            setErrorMsg("You don't have permission to edit this post.");
+          } else {
+            setErrorMsg("Failed to load post. Please try again.");
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchPost();
+    }
+  }, [postIdFromUrl, initial?.post_id]);
+
+  const clearMessages = () => {
+    if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current);
+    clearTimeoutRef.current = window.setTimeout(() => {
+      setSaveMsg(null);
+      setPublishMsg(null);
+      setErrorMsg(null);
+      setSlugError(null);
+      setPublishSlugError(null);
+    }, 5000);
+  };
+
+  const sync = () => {
+    if (syncingRef.current) return;
+    syncingRef.current = true;
+    requestAnimationFrame(() => {
+      const title = titleRef.current?.innerText ?? "";
+      const content = contentRef.current?.innerHTML ?? "";
+      setForm((prev) => {
+        if (prev.title === title && prev.content === content) {
+          syncingRef.current = false;
+          return prev;
+        }
+        syncingRef.current = false;
+        return { ...prev, title, content };
+      });
+    });
   };
 
   const generateSlug = (text: string) =>
@@ -42,77 +119,221 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
       .replace(/(^-|-$)/g, "");
 
   useEffect(() => {
-    if (!form.slug && form.title) {
-      setForm((prev) => ({
-        ...prev,
-        slug: generateSlug(form.title),
-      }));
+    if (slugManuallyEdited) return;
+    const slug = generateSlug(form.title);
+    setForm((prev) => (prev.slug === slug ? prev : { ...prev, slug }));
+  }, [form.title, slugManuallyEdited]);
+
+  useEffect(() => {
+    if (titleRef.current && form.title !== titleRef.current.innerText) {
+      titleRef.current.innerText = form.title;
     }
-  }, [form.title]);
+    if (contentRef.current && form.content !== contentRef.current.innerHTML) {
+      contentRef.current.innerHTML = form.content;
+    }
+  }, [form.title, form.content]);
+
+  const redirectToPosts = () => {
+    navigate("/dashboard?tab=posts");
+  };
+
+  const handleSlugConflict = (isPublish: boolean = false) => {
+    const errorMessage = isEditing
+      ? "The slug you entered is already used by another post. Please choose a different slug, or revert to the original one."
+      : "Slug already exists. Please edit the slug field to make it unique, then save again.";
+    if (isPublish) {
+      setPublishSlugError(errorMessage);
+    } else {
+      setSlugError(errorMessage);
+    }
+    const slugInput = document.querySelector(
+      'input[placeholder*="slug"]',
+    ) as HTMLInputElement;
+    if (slugInput) slugInput.focus();
+  };
 
   const save = async () => {
-    const payload = { ...form, published: false };
+    if (saving) return;
+    if (!isFormValid) {
+      setErrorMsg("Please complete title and content before saving");
+      return;
+    }
 
-    const res = form.id
-      ? await updatePost(form.id, payload)
-      : await createPost(payload);
+    try {
+      setSaving(true);
+      setSaveMsg(null);
+      setPublishMsg(null);
+      setErrorMsg(null);
+      setSlugError(null);
+      setPublishSlugError(null);
 
-    if (!res) return;
+      const latestTitle = titleRef.current?.innerText ?? form.title;
+      const latestContent = contentRef.current?.innerHTML ?? form.content;
 
-    await onSave?.({
-      id: res.data.post.id,
-      title: res.data.post.title,
-      slug: res.data.post.slug,
-      excerpt: res.data.post.excerpt || "",
-      content: res.data.post.content,
-      cover_image: res.data.post.cover_image || "",
-      published: res.data.post.published,
-    });
+      const payload = {
+        ...form,
+        title: latestTitle,
+        content: latestContent,
+        published: false,
+      };
+      delete (payload as any).post_id; // remove post_id from payload
+
+      const res = form.post_id
+        ? await updatePost(form.post_id, payload)
+        : await createPost(payload);
+
+      setForm((prev) => ({
+        ...prev,
+        post_id: res.data.post.post_id,
+        title: res.data.post.title,
+        slug: res.data.post.slug,
+        content: res.data.post.content,
+        excerpt: res.data.post.excerpt || prev.excerpt,
+        cover_image: res.data.post.cover_image || prev.cover_image,
+        published: false,
+      }));
+
+      setSaveMsg(
+        form.post_id
+          ? "Draft updated successfully."
+          : "Draft saved successfully.",
+      );
+      clearMessages();
+      await onSave?.({
+        post_id: res.data.post.post_id,
+        title: res.data.post.title,
+        slug: res.data.post.slug,
+        excerpt: res.data.post.excerpt || "",
+        content: res.data.post.content,
+        cover_image: res.data.post.cover_image || "",
+        published: res.data.post.published,
+      });
+
+      if (postIdFromUrl) redirectToPosts();
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(null);
+      setSlugError(null);
+      setPublishSlugError(null);
+
+      const status = err.response?.status;
+      const message = err.response?.data?.message || err.message || "Error";
+
+      if (status === 409 && message.toLowerCase().includes("slug")) {
+        handleSlugConflict(false);
+      } else {
+        setErrorMsg(message);
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const publish = async () => {
-    const payload = { ...form, published: true };
+    if (publishing || form.published) return;
+    if (!isFormValid) {
+      setErrorMsg("Please complete title and content before publishing");
+      return;
+    }
 
-    const res = form.id
-      ? await updatePost(form.id, payload)
-      : await createPost(payload);
+    try {
+      setPublishing(true);
+      setSaveMsg(null);
+      setPublishMsg(null);
+      setErrorMsg(null);
+      setSlugError(null);
+      setPublishSlugError(null);
 
-    if (!res) return;
+      const latestTitle = titleRef.current?.innerText ?? form.title;
+      const latestContent = contentRef.current?.innerHTML ?? form.content;
 
-    await onPublish?.({
-      id: res.data.post.id,
-      title: res.data.post.title,
-      slug: res.data.post.slug,
-      excerpt: res.data.post.excerpt || "",
-      content: res.data.post.content,
-      cover_image: res.data.post.cover_image || "",
-      published: res.data.post.published,
-    });
+      const payload = {
+        ...form,
+        title: latestTitle,
+        content: latestContent,
+        published: true,
+      };
+      delete (payload as any).post_id;
+
+      const res = form.post_id
+        ? await updatePost(form.post_id, payload)
+        : await createPost(payload);
+
+      setForm((prev) => ({
+        ...prev,
+        post_id: res.data.post.post_id,
+        title: res.data.post.title,
+        slug: res.data.post.slug,
+        content: res.data.post.content,
+        excerpt: res.data.post.excerpt || prev.excerpt,
+        cover_image: res.data.post.cover_image || prev.cover_image,
+        published: true,
+      }));
+
+      setPublishMsg(
+        form.post_id
+          ? "Post updated and published successfully."
+          : "Post published successfully.",
+      );
+      clearMessages();
+      await onPublish?.({
+        post_id: res.data.post.post_id,
+        title: res.data.post.title,
+        slug: res.data.post.slug,
+        excerpt: res.data.post.excerpt || "",
+        content: res.data.post.content,
+        cover_image: res.data.post.cover_image || "",
+        published: res.data.post.published,
+      });
+      redirectToPosts();
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(null);
+      setSlugError(null);
+      setPublishSlugError(null);
+
+      const status = err.response?.status;
+      const message = err.response?.data?.message || err.message || "Error";
+
+      if (status === 409 && message.toLowerCase().includes("slug")) {
+        handleSlugConflict(true);
+      } else {
+        setErrorMsg(message);
+      }
+    } finally {
+      setPublishing(false);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-text-secondary">Loading post...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-on-surface">
-      {/* MAIN SCROLL AREA */}
-      <main className="flex-1 min-w-0 h-full overflow-y-auto scrollbar-hidden px-6 py-16">
+    <div className="flex h-full min-h-0 overflow-hidden bg-background text-on-surface">
+      {/* MAIN EDITOR – unchanged JSX, but note form.post_id is not displayed */}
+      <main className="flex-1 min-w-0 min-h-0 overflow-y-auto px-6 py-16 scrollbar-hidden">
         <div className="max-w-195 mx-auto">
           {form.cover_image && (
             <img
               src={form.cover_image}
               alt="Cover"
-              className="w-full max-h-95 object-cover rounded-2xl mb-10"
+              className="mb-10 max-h-95 w-full rounded-2xl object-cover"
             />
           )}
-
           <h1
             ref={titleRef}
             contentEditable
             suppressContentEditableWarning
             onInput={sync}
             data-placeholder="Untitled story..."
-            className="font-display-lg text-[46px] leading-[1.05] tracking-[-0.02em] outline-none mb-6 empty:before:content-[attr(data-placeholder)]"
+            className="font-display-lg mb-6 text-[46px] leading-[1.05] tracking-[-0.02em] outline-none empty:before:content-[attr(data-placeholder)]"
           />
-
-          <div className="flex items-center gap-4 text-xs text-text-secondary mb-10">
+          <div className="mb-10 flex items-center gap-4 text-xs text-text-secondary">
             <span className="uppercase tracking-wide">
               {form.slug || "auto-slug"}
             </span>
@@ -129,7 +350,7 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, excerpt: e.target.value }))
               }
-              className="w-full min-h-28 resize-none rounded-xl border border-border-muted bg-surface px-4 py-3 text-[19px] leading-8 text-text-secondary outline-none"
+              className="w-full min-h-28 resize-none rounded-xl border border-border-muted bg-surface px-4 py-3 text-[19px] leading-8 text-text-secondary outline-none scrollbar-hidden"
             />
           </div>
 
@@ -139,13 +360,13 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
             suppressContentEditableWarning
             onInput={sync}
             data-placeholder="Start writing..."
-            className="font-body-reading text-[20px] leading-9 tracking-[0.01em] outline-none empty:before:content-[attr(data-placeholder)] whitespace-pre-wrap wrap-break-word overflow-wrap-anywhere min-h-125"
+            className="font-body-reading min-h-125 whitespace-pre-wrap text-[20px] leading-9 tracking-[0.01em] outline-none empty:before:content-[attr(data-placeholder)] wrap-break-word overflow-wrap-anywhere"
           />
         </div>
       </main>
 
-      {/* SIDEBAR (NO SCROLL) */}
-      <aside className="w-80 shrink-0 h-full border-l border-border-muted bg-surface-container/30 px-5 py-6 flex flex-col gap-8">
+      {/* SIDEBAR – unchanged except for slug input value */}
+      <aside className="w-80 shrink-0 border-l border-border-muted bg-surface-container/30 px-5 py-6 flex flex-col gap-6">
         <div className="space-y-1">
           <h2 className="text-xs uppercase tracking-widest text-on-surface-variant">
             Post Inspector
@@ -153,20 +374,89 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
           <p className="text-xs text-text-secondary">Manage draft metadata</p>
         </div>
 
+        {!isFormValid && (
+          <div className="flex items-start gap-2 text-xs text-text-secondary">
+            <FaExclamationTriangle className="mt-0.5" />
+            <span>
+              Title and content are required before saving or publishing.
+            </span>
+          </div>
+        )}
+
         <div className="flex flex-col gap-2">
           <button
             onClick={save}
-            className="w-full py-2.5 rounded-lg border border-border-muted hover:bg-surface transition text-sm"
+            disabled={saving || !isFormValid}
+            className={`w-full rounded-lg border border-border-muted py-2 text-sm transition ${
+              saving || !isFormValid
+                ? "cursor-not-allowed opacity-50"
+                : "hover:bg-surface"
+            }`}
           >
-            Save Draft
+            {saving ? "Saving..." : isEditing ? "Update Draft" : "Save Draft"}
           </button>
 
           <button
             onClick={publish}
-            className="w-full py-2.5 rounded-lg bg-primary text-white text-sm"
+            disabled={publishing || !isFormValid || form.published}
+            className={`w-full rounded-lg py-2 text-sm text-white ${
+              publishing || !isFormValid || form.published
+                ? "cursor-not-allowed bg-primary/60"
+                : "bg-primary"
+            }`}
           >
-            Publish
+            {form.published
+              ? "Already Published"
+              : publishing
+                ? "Publishing..."
+                : isEditing
+                  ? "Update & Publish"
+                  : "Publish"}
           </button>
+
+          {saveMsg && (
+            <div className="px-1 text-xs text-text-secondary">{saveMsg}</div>
+          )}
+          {publishMsg && (
+            <div className="px-1 text-xs text-text-secondary">{publishMsg}</div>
+          )}
+          {errorMsg && (
+            <div className="px-1 text-xs text-red-500">{errorMsg}</div>
+          )}
+
+          {slugError && (
+            <div className="px-1 text-xs text-red-500">
+              {slugError}{" "}
+              <button
+                onClick={() => {
+                  const input = document.querySelector(
+                    'input[placeholder*="slug"]',
+                  ) as HTMLInputElement;
+                  if (input) input.focus();
+                }}
+                className="underline"
+              >
+                Edit slug
+              </button>
+            </div>
+          )}
+
+          {publishSlugError && (
+            <div className="px-1 text-xs text-red-500">
+              {publishSlugError}{" "}
+              <button
+                onClick={() => {
+                  const input = document.querySelector(
+                    'input[placeholder*="slug"]',
+                  ) as HTMLInputElement;
+                  if (input) input.focus();
+                }}
+                className="underline"
+              >
+                Edit slug
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="border-t border-border-muted" />
@@ -177,31 +467,40 @@ const PostEditor = ({ initial, onSave, onPublish }: PostEditorProps) => {
           </label>
           <input
             value={form.slug}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, slug: e.target.value }))
-            }
-            className="w-full p-2.5 rounded-lg bg-surface border border-border-muted outline-none text-sm"
+            onChange={(e) => {
+              setSlugManuallyEdited(true);
+              setSlugError(null);
+              setPublishSlugError(null);
+              setForm((prev) => ({ ...prev, slug: e.target.value }));
+            }}
+            className="w-full rounded-lg border border-border-muted bg-surface p-2 text-sm outline-none"
+            placeholder="unique-url-slug"
           />
+          <p className="text-xs text-text-secondary">
+            The slug is the URL-friendly version of the title. Leave empty to
+            auto-generate (for new posts only).
+          </p>
         </div>
 
         <div className="space-y-2">
           <label className="text-xs uppercase tracking-wide text-on-surface-variant">
-            Cover image
+            Cover image URL
           </label>
           <input
             value={form.cover_image}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, cover_image: e.target.value }))
             }
-            className="w-full p-2.5 rounded-lg bg-surface border border-border-muted outline-none text-sm"
+            className="w-full rounded-lg border border-border-muted bg-surface p-2.5 text-sm outline-none"
+            placeholder="https://example.com/image.jpg"
           />
         </div>
 
-        <div className="mt-auto p-4 rounded-xl bg-surface border border-border-muted">
+        <div className="rounded-xl border border-border-muted bg-surface p-4">
           <div className="text-sm font-medium">
             {form.published ? "Published" : "Draft"}
           </div>
-          <div className="text-xs text-text-secondary mt-1 leading-5">
+          <div className="mt-1 text-xs text-text-secondary">
             {form.published
               ? "This post is visible to everyone"
               : "This post is only visible to you"}
