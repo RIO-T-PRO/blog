@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAllPosts, updatePost } from "@/lib/api/posts";
 import type { Post } from "@/types/post";
-import { FaPaperPlane } from "react-icons/fa";
+import { FaPaperPlane, FaEdit } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import PostModal from "../post/post-modal";
 
 type Tab = "all" | "published" | "draft";
 
 const WriterPosts = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [tab, setTab] = useState<Tab>("all");
   const [loading, setLoading] = useState(true);
@@ -16,14 +18,11 @@ const WriterPosts = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-
       const res = await getAllPosts(1, 20);
-
       const normalized = (res?.data?.posts ?? []).map((p: any) => ({
         ...p,
-        id: p.id ?? p.post_id,
+        // no renaming – keep post_id as is
       }));
-
       setPosts(normalized);
     } catch (err) {
       console.error("Failed to fetch posts:", err);
@@ -39,40 +38,31 @@ const WriterPosts = () => {
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setSelectedPost(null);
-      }
+      if (e.key === "Escape") setSelectedPost(null);
     };
-
     window.addEventListener("keydown", handleEsc);
-
-    return () => {
-      window.removeEventListener("keydown", handleEsc);
-    };
+    return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
   const filtered = useMemo(() => {
     const list = posts ?? [];
-
     if (tab === "published") return list.filter((p) => p.published);
     if (tab === "draft") return list.filter((p) => !p.published);
-
     return list;
   }, [tab, posts]);
 
-  const handlePublish = async (id: string) => {
+  const handlePublish = async (post_id: string) => {
     try {
-      setLoadingId(id);
-
-      const res = await updatePost(id, { published: true });
-
+      setLoadingId(post_id);
+      const res = await updatePost(post_id, { published: true });
       if (res?.data?.post) {
         setPosts((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, published: true } : p)),
+          prev.map((p) =>
+            p.post_id === post_id ? { ...p, published: true } : p,
+          ),
         );
-
         setSelectedPost((prev) =>
-          prev?.id === id ? { ...prev, published: true } : prev,
+          prev?.post_id === post_id ? { ...prev, published: true } : prev,
         );
       }
     } catch (err) {
@@ -110,7 +100,7 @@ const WriterPosts = () => {
         <div className="divide-y divide-border-muted">
           {filtered.map((post) => (
             <article
-              key={post.id}
+              key={post.post_id}
               onClick={() => setSelectedPost(post)}
               className="relative p-4 md:p-6 flex items-center gap-6 hover:bg-surface-container/40 transition cursor-pointer"
             >
@@ -146,19 +136,31 @@ const WriterPosts = () => {
                 </p>
               </div>
 
-              {!post.published && (
+              <div className="flex items-center gap-2">
+                {!post.published && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePublish(post.post_id);
+                    }}
+                    className="p-2 rounded-lg hover:bg-green-100"
+                  >
+                    <FaPaperPlane />
+                  </button>
+                )}
+
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handlePublish(post.id);
+                    navigate(`/dashboard?tab=write&postId=${post.post_id}`);
                   }}
-                  className="p-2 rounded-lg hover:bg-green-100"
+                  className="p-2 rounded-lg hover:bg-surface-container"
                 >
-                  <FaPaperPlane />
+                  <FaEdit />
                 </button>
-              )}
+              </div>
 
-              {loadingId === post.id && (
+              {loadingId === post.post_id && (
                 <div className="absolute inset-0 bg-white/40 flex items-center justify-center text-xs text-text-secondary">
                   Processing...
                 </div>

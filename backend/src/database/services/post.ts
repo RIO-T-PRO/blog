@@ -38,6 +38,12 @@ const findPosts = async (params: {
   };
 };
 
+const findPostBySlug = async (slug: string) => {
+  return prisma.post.findUnique({
+    where: { slug: slug },
+  });
+};
+
 const createPost = async (data: {
   title: string;
   slug: string;
@@ -73,4 +79,11 @@ const deletePost = async (post_id: string) => {
   return prisma.post.delete({ where: { post_id } });
 };
 
-export { findPostById, findPosts, createPost, updatePost, deletePost };
+export {
+  findPostById,
+  findPosts,
+  createPost,
+  updatePost,
+  deletePost,
+  findPostBySlug,
+};

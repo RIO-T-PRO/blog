@@ -1,5 +1,6 @@
+// types/post.ts
 export type Post = {
-  id: string;
+  post_id: string; // ✅ consistent with backend
   title: string;
   content: string;
   slug: string;
@@ -30,7 +31,7 @@ export type PostResponse = {
 };
 
 export type PostEditorForm = {
-  id?: string;
+  post_id?: string;
   title: string;
   slug: string;
   excerpt: string;

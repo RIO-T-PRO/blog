@@ -1,9 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import type { Post } from "@/types/post";
 import {
   FaTimes,
   FaCheckCircle,
   FaExclamationTriangle,
   FaInfoCircle,
+  FaEdit,
 } from "react-icons/fa";
 
 type Props = {
@@ -13,6 +15,8 @@ type Props = {
 };
 
 const PostModal = ({ post, onClose, onPublish }: Props) => {
+  const navigate = useNavigate();
+
   if (!post) return null;
 
   const hasTitle = Boolean(post.title?.trim());
@@ -27,6 +31,11 @@ const PostModal = ({ post, onClose, onPublish }: Props) => {
     { label: "Slug ready", ok: hasSlug },
     { label: "Content written", ok: hasContent },
   ];
+
+  const handleEdit = () => {
+    onClose(); // close modal
+    navigate(`/dashboard?tab=write&postId=${post.post_id}`);
+  };
 
   return (
     <div
@@ -155,10 +164,17 @@ const PostModal = ({ post, onClose, onPublish }: Props) => {
               Close
             </button>
 
+            <button
+              onClick={handleEdit}
+              className="rounded-lg border border-border-muted bg-surface px-4 py-2 text-sm hover:bg-surface-container"
+            >
+              <FaEdit className="inline mr-1" /> Edit
+            </button>
+
             {!isPublished && (
               <button
                 disabled={!isReadyToPublish}
-                onClick={() => onPublish(post.id)}
+                onClick={() => onPublish(post.post_id)}
                 className={`rounded-lg px-4 py-2 text-sm font-medium ${
                   isReadyToPublish
                     ? "bg-green-600 text-white hover:bg-green-700"
