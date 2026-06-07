@@ -62,15 +62,33 @@ const createPost = async (req: Request, res: Response) => {
 };
 
 const updatePost = async (req: Request, res: Response) => {
-  const { postId } = req.params as postIdParam;
-  const updateData = req.body as updatePostBody;
+  try {
+    const { postId } = req.params as postIdParam;
+    const updateData = req.body as updatePostBody;
 
-  const updatedPost = await updatePostService(postId, updateData);
+    const updatedPost = await updatePostService(postId, updateData);
 
-  return res.status(200).json({
-    status: "success",
-    data: { post: updatedPost },
-  });
+    return res.status(200).json({
+      status: "success",
+      data: { post: updatedPost },
+    });
+  } catch (err) {
+    console.error("updatePost error:", err);
+
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2002") {
+        return res.status(409).json({
+          status: "error",
+          message: "Slug already exists.",
+        });
+      }
+    }
+
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
 };
 
 const deletePost = async (req: Request, res: Response) => {
