@@ -1,7 +1,8 @@
+// WriterPosts.tsx
 import { useEffect, useMemo, useState } from "react";
-import { getAllPosts, updatePost } from "@/lib/api/posts";
+import { getAllPosts, updatePost, deletePost } from "@/lib/api/posts";
 import type { Post } from "@/types/post";
-import { FaPaperPlane, FaEdit } from "react-icons/fa";
+import { FaPaperPlane, FaEdit, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import PostModal from "../post/post-modal";
 
@@ -14,16 +15,16 @@ const WriterPosts = () => {
   const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [deleteConfirmPostId, setDeleteConfirmPostId] = useState<string | null>(
+    null,
+  );
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
       const res = await getAllPosts(1, 20);
-      const normalized = (res?.data?.posts ?? []).map((p: any) => ({
-        ...p,
-        // no renaming – keep post_id as is
-      }));
-      setPosts(normalized);
+      const postsData = res?.data?.posts ?? [];
+      setPosts(postsData);
     } catch (err) {
       console.error("Failed to fetch posts:", err);
       setPosts([]);
@@ -38,7 +39,10 @@ const WriterPosts = () => {
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedPost(null);
+      if (e.key === "Escape") {
+        setSelectedPost(null);
+        setDeleteConfirmPostId(null);
+      }
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
@@ -67,6 +71,21 @@ const WriterPosts = () => {
       }
     } catch (err) {
       console.error("Publish failed:", err);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleDelete = async (post_id: string) => {
+    setDeleteConfirmPostId(null);
+    try {
+      setLoadingId(post_id);
+      await deletePost(post_id);
+      setPosts((prev) => prev.filter((p) => p.post_id !== post_id));
+      if (selectedPost?.post_id === post_id) setSelectedPost(null);
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert("Failed to delete post. Please try again.");
     } finally {
       setLoadingId(null);
     }
@@ -144,6 +163,7 @@ const WriterPosts = () => {
                       handlePublish(post.post_id);
                     }}
                     className="p-2 rounded-lg hover:bg-green-100"
+                    title="Publish"
                   >
                     <FaPaperPlane />
                   </button>
@@ -155,8 +175,20 @@ const WriterPosts = () => {
                     navigate(`/dashboard?tab=write&postId=${post.post_id}`);
                   }}
                   className="p-2 rounded-lg hover:bg-surface-container"
+                  title="Edit"
                 >
                   <FaEdit />
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteConfirmPostId(post.post_id);
+                  }}
+                  className="p-2 rounded-lg hover:bg-red-100 text-red-600"
+                  title="Delete"
+                >
+                  <FaTrash />
                 </button>
               </div>
 
@@ -176,10 +208,38 @@ const WriterPosts = () => {
         )}
       </div>
 
+      {/* Custom delete confirmation modal */}
+      {deleteConfirmPostId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-surface rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold mb-2">Delete post?</h3>
+            <p className="text-text-secondary mb-6">
+              This action cannot be undone. The post will be permanently
+              deleted.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirmPostId(null)}
+                className="px-4 py-2 rounded-lg border border-border-muted hover:bg-surface-container"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deleteConfirmPostId)}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+              >
+                Yes, delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <PostModal
         post={selectedPost}
         onClose={() => setSelectedPost(null)}
         onPublish={handlePublish}
+        onDelete={handleDelete}
       />
     </>
   );
