@@ -1,6 +1,6 @@
 import { FaArrowRight } from "react-icons/fa6";
 
-import type { Article } from "@/lib/data";
+import type { Article } from "@/types/post";
 
 type ArticleCardProps = {
   article: Article;
