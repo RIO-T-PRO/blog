@@ -30,3 +30,6 @@ export type UpdateUserBody = z.infer<typeof updateUserBodySchema>;
 
 export type DashboardParams = z.infer<typeof dashboardParamsSchema>;
 export type DashboardQuery = z.infer<typeof dashboardQuerySchema>;
+export type slugParamId = {
+  slug: string;
+};

@@ -1,4 +1,3 @@
-// types/post.ts
 export type Post = {
   post_id: string; // ✅ consistent with backend
   title: string;
@@ -54,4 +53,41 @@ export type PostsResponse = {
     limit: number;
     totalPages: number;
   };
+};
+
+export type PostsResponse = {
+  status: "success";
+  data: {
+    posts: Post[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+};
+
+export type PublicPost = Post & {
+  writer?: {
+    writer_id: string;
+    user: {
+      user_id: string;
+      fullname: string;
+      userProfile?: {
+        avatar?: string | null;
+        bio?: string | null;
+      } | null;
+    };
+  };
+};
+
+export type Article = {
+  post_id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  image: string;
+  author: string;
+  authorImage: string;
+  date: string;
+  readTime: string;
 };

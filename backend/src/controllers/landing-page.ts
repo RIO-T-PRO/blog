@@ -1,48 +1,54 @@
+import {
+  getPublishedPostBySlug,
+  getPublishedPosts,
+} from "@/database/services/landing-page.js";
+import { slugParamId } from "@/schemas/user.js";
 import { Request, Response } from "express";
-import { LandingService } from "@/database/services/landing-page.js";
 
-const landingService = new LandingService();
+const getPosts = async (req: Request, res: Response) => {
+  try {
+    const page = Number(req.query.page ?? 1);
+    const limit = Number(req.query.limit ?? 10);
 
-export class LandingController {
-  async getPosts(req: Request, res: Response) {
-    try {
-      const posts = await landingService.getPublishedPosts();
-      res.status(200).json({
-        success: true,
-        data: posts,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch posts for landing page",
+    const result = await getPublishedPosts(page, limit);
+
+    return res.status(200).json({
+      status: "success",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Landing get posts error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to fetch posts for landing page",
+    });
+  }
+};
+
+const getPostBySlug = async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params as slugParamId;
+
+    const post = await getPublishedPostBySlug(slug);
+
+    if (!post) {
+      return res.status(404).json({
+        status: "error",
+        message: "Post not found or not published",
       });
     }
+
+    return res.status(200).json({
+      status: "success",
+      data: { post },
+    });
+  } catch (error) {
+    console.error("Landing get post by slug error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to fetch the post",
+    });
   }
+};
 
-  async getPostBySlug(req: Request, res: Response) {
-    try {
-      const { slug } = req.params;
-      const slugParam = Array.isArray(slug) ? slug[0] : slug;
-      const post = await landingService.getPublishedPostBySlug(slugParam);
-
-      if (!post) {
-        return res.status(404).json({
-          success: false,
-          message: "Post not found or not published",
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        data: post,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch the post",
-      });
-    }
-  }
-}
+export { getPosts, getPostBySlug };
