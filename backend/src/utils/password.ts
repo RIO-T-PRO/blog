@@ -1,13 +1,15 @@
+import { env } from "@/config/env.js";
 import bcrypt from "bcryptjs";
 
-export const generateSalt = async (rounds = 10) => {
-  return await bcrypt.genSalt(rounds);
+const SALT_ROUNDS = Number(env.BCRYPT_SALT_ROUNDS ?? 10);
+
+export const hashPassword = async (password: string): Promise<string> => {
+  return bcrypt.hash(password, SALT_ROUNDS);
 };
 
-export const hashPassword = async (password: string, salt: string) => {
-  return await bcrypt.hash(password, salt);
-};
-
-export const comparePassword = async (password: string, hash: string) => {
-  return await bcrypt.compare(password, hash);
+export const comparePassword = async (
+  password: string,
+  hashedPassword: string,
+): Promise<boolean> => {
+  return bcrypt.compare(password, hashedPassword);
 };

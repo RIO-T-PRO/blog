@@ -1,24 +1,24 @@
-import type { CookieOptions, Response } from "express";
+import { env } from "@/config/env.js";
+import { Response } from "express";
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const cookieOptions: CookieOptions = {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
-  path: "/",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-};
-
-export const setAuthCookie = (res: Response, token: string): void => {
-  res.cookie("token", token, cookieOptions);
-};
-
-export const clearAuthCookie = (res: Response): void => {
-  res.clearCookie("token", {
+export const setRefreshTokenCookie = (
+  res: Response,
+  refreshToken: string,
+): void => {
+  res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "lax",
-    path: "/",
+    sameSite: "strict",
+    maxAge: env.REFRESH_TOKEN_EXPIRES_IN * 1000,
+  });
+};
+
+export const clearRefreshTokenCookie = (res: Response): void => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "strict",
   });
 };
