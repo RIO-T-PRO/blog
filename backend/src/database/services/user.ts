@@ -1,126 +1,59 @@
 import { prisma } from "@/database/db.js";
 import { User } from "@/generated/prisma/client.js";
 
-interface GetUserDashboardParams {
-  userId: string;
-  page?: number;
-  limit?: number;
-}
-
 const createUser = async (data: {
-  fullname: string;
+  name: string;
   email: string;
   password: string;
-  salt: string;
 }): Promise<User> => {
   return prisma.user.create({
     data: {
-      fullname: data.fullname,
+      name: data.name,
       email: data.email,
       password: data.password,
-      salt: data.salt,
     },
   });
 };
 
 const findUserById = async (user_id: string) => {
   return prisma.user.findUnique({
-    where: { user_id: user_id },
+    where: { id: user_id },
   });
 };
 
+// Fixed: Removed non-existent userProfile inclusion
 const findUserByEmail = async (email: string) => {
   return prisma.user.findUnique({
     where: { email: email },
-    include: { userProfile: true },
   });
 };
 
 interface UpdateUserParams {
   userId: string;
-  fullname?: string;
+  name?: string; // Fixed: renamed from fullname
   email?: string;
 }
 
 const updateUser = async ({
   userId,
-  fullname,
+  name,
   email,
 }: UpdateUserParams): Promise<User> => {
   const data: any = {};
 
-  if (fullname) data.fullname = fullname;
+  if (name) data.name = name; // Fixed field name
   if (email) data.email = email;
 
   return prisma.user.update({
-    where: { user_id: userId },
+    where: { id: userId },
     data,
   });
-};
-
-const getUserDashboard = async ({
-  userId,
-  page = 1,
-  limit = 15,
-}: GetUserDashboardParams) => {
-  const skip = (page - 1) * limit;
-
-  const userProfile = await prisma.user.findUnique({
-    where: { user_id: userId },
-    select: {
-      fullname: true,
-      email: true,
-      userProfile: {
-        select: {
-          bio: true,
-          avatar: true,
-        },
-      },
-    },
-  });
-
-  const commentsHistory = await prisma.comment.findMany({
-    where: { user_id: userId },
-    skip,
-    take: limit,
-    orderBy: { createdAt: "desc" },
-    include: {
-      post: {
-        select: {
-          post_id: true,
-          title: true,
-          writer: {
-            include: {
-              user: {
-                select: { fullname: true },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const totalComments = await prisma.comment.count({
-    where: { user_id: userId },
-  });
-
-  return {
-    profile: userProfile,
-    comments: commentsHistory,
-    meta: {
-      totalComments,
-      page,
-      limit,
-      totalPages: Math.ceil(totalComments / limit),
-    },
-  };
 };
 
 const softDeleteUser = async (userId: string): Promise<User> => {
   return prisma.user.update({
     where: {
-      user_id: userId,
+      id: userId,
     },
     data: {
       active: false,
@@ -133,6 +66,5 @@ export {
   updateUser,
   findUserById,
   findUserByEmail,
-  getUserDashboard,
   softDeleteUser,
 };
