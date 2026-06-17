@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,119 +7,198 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  user_id   String   @id @default(uuid())
-  email     String   @unique
-  fullname  String
-  password  String
-  salt      String
-  status    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
 
-  userProfile UserProfile?
-  writer      Writer?
-  admin       Admin?
-  comments    Comment[]
-  writerApplication WriterApplication?
+//
+// USER (AUTH ONLY + REAL NAME)
+//
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String   @unique
+  password String   @map("password_hash")
+
+
+  active       Boolean  @default(true)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  profile      UserProfile?
+  articles     Article[]
+  comments     Comment[]
+  userRoles    UserRole[]
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
 
+//
+// USER PROFILE (PUBLIC INFO)
+//
 model UserProfile {
-  user_profile_id String   @id @default(uuid())
-  user_id         String   @unique 
-  bio             String?
-  avatar          String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id        String  @id @default(uuid()) @db.Uuid
 
-  user            User     @relation(fields: [user_id], references: [user_id])
+  userId    String  @unique @map("user_id") @db.Uuid
+
+  username  String  @unique
+  bio       String? @db.Text
+  avatarUrl String? @map("avatar_url")
+  website   String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_profiles")
 }
 
-model Writer {
-  writer_id String   @id @default(uuid())
-  user_id   String   @unique // each user can be a writer only once
-  website   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+//
+// ROLE
+//
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
 
-  user      User     @relation(fields: [user_id], references: [user_id])
-  posts     Post[]   
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  @@map("writers")
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
 }
 
-model Post {
-  post_id     String   @id @default(uuid())
-  title       String
-  slug        String   @unique // readable URL part
-  excerpt     String?          
-  content     String   @db.Text 
-  cover_image String?           
-  published   Boolean  @default(false) // draft vs published
-  publishedAt DateTime?         // when first published
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+//
+// PERMISSION
+//
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
 
-  writer_id   String
-  writer      Writer   @relation(fields: [writer_id], references: [writer_id])
-  comments    Comment[] 
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  @@index([published])
-  @@index([createdAt])
-  @@map("posts")
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
 }
 
+//
+// USER_ROLE
+//
+model UserRole {
+  userId     String @map("user_id") @db.Uuid
+  roleId     Int    @map("role_id")
+
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+
+  @@map("user_roles")
+}
+
+//
+// ROLE_PERMISSION
+//
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+
+  @@map("roles_permissions")
+}
+
+//
+// REFRESH TOKEN
+//
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique @db.Text
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at")
+  revoked   Boolean  @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+
+  @@map("refresh_tokens")
+}
+
+//
+// ARTICLE
+//
+model Article {
+  id            String        @id @default(uuid()) @db.Uuid
+  authorId      String        @map("author_id") @db.Uuid
+
+  title         String
+  slug          String        @unique
+  excerpt       String?
+  content       String        @db.Text
+  featuredImage String?       @map("featured_image")
+
+  status        ArticleStatus @default(DRAFT)
+  publishedAt   DateTime?     @map("published_at")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments Comment[]
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+
+  @@map("articles")
+}
+
+//
+// COMMENT (nested replies)
+//
 model Comment {
-  comment_id String   @id @default(uuid())
-  content    String   @db.Text
-  status     String   @default("pending") 
-  
-  post_id    String
-  post       Post     @relation(fields: [post_id], references: [post_id])
-  
-  user_id    String   // who wrote the comment (normal user, writer, or even admin)
-  user       User     @relation(fields: [user_id], references: [user_id])
+  id        String @id @default(uuid()) @db.Uuid
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  articleId String @map("article_id") @db.Uuid
+  userId    String @map("user_id") @db.Uuid
+  parentId  String? @map("parent_id") @db.Uuid
 
-  @@index([post_id])
-  @@index([user_id])
-  @@index([status])
+  content   String @db.Text
+  active    Boolean @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([parentId])
+
   @@map("comments")
-}
-
-model Admin {
-  admin_id  String   @id @default(uuid())
-  user_id   String   @unique 
-  role      String   @default("ADMIN") // e.g., "SUPERADMIN", "MODERATOR" – customize as needed
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user      User     @relation(fields: [user_id], references: [user_id])
-
-  @@map("admins")
-}
-
-model WriterApplication {
-  application_id String   @id @default(uuid())
-
-  user_id         String   @unique
-  reason          String   @db.Text
-  website         String?
-
-  status          String   @default("PENDING")
-  reviewedBy      String?
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  user            User     @relation(fields: [user_id], references: [user_id])
-
-  @@index([status])
-  @@map("writer_applications")
 }
