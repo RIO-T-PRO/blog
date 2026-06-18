@@ -82,6 +82,20 @@ export const findUserWithRole = async (userId: string) => {
   };
 };
 
+export const hasRole = async (
+  userId: string,
+  allowedRoles: string[],
+): Promise<boolean> => {
+  const role = await prisma.userRole.findFirst({
+    where: {
+      userId,
+      role: { name: { in: allowedRoles } },
+    },
+    select: { userId: true },
+  });
+  return !!role;
+};
+
 export {
   createUser,
   updateUser,

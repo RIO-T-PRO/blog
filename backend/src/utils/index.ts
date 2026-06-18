@@ -17,6 +17,3 @@ export { hashPassword, comparePassword } from "@/utils/password.js";
 
 // response
 export { resSuccess, resError } from "@/utils/response.js";
-
-// authorize
-export { authorize } from "@/utils/authorize.js";
