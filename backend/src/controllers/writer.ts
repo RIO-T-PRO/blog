@@ -13,7 +13,7 @@ import {
   type UpdateWriterBody,
   type WriterDashboardQuery,
 } from "@/schemas/writer.js";
-import { DashboardParams } from "@/schemas/user.js";
+import { DashboardParams } from "@/schemas/user.schema.js";
 
 const createWriter = async (req: Request, res: Response): Promise<Response> => {
   const { userId } = req.params as DashboardParams;

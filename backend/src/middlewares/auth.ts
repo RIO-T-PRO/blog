@@ -1,56 +1,40 @@
-import type { NextFunction, Request, Response } from "express";
-
+import { Request, Response, NextFunction } from "express";
+import { verifyToken } from "@/utils/token.js";
 import { findUserById } from "@/database/services/user.js";
+import { TokenPayload } from "@/types/token.js";
+import { resError } from "@/utils/index.js";
 
-import { AccessTokenPayload, verifyToken } from "@/utils/token.js";
-
-export const authMiddleware = async (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction,
-): Promise<void> => {
+) => {
   try {
-    // READ TOKEN FROM COOKIE
-    const token = req.cookies?.token;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
-      res.status(401).json({
-        error: "Not authorized, no token provided",
-      });
-
-      return;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return resError(res, "accessToken missing", 401);
     }
 
-    let decoded: AccessTokenPayload;
+    const accessToken = authHeader.split(" ")[1];
 
-    try {
-      decoded = verifyToken(token);
-    } catch {
-      res.status(401).json({
-        error: "Not authorized, invalid or expired token",
-      });
+    const decoded = verifyToken("access", accessToken) as TokenPayload;
 
-      return;
+    if (!decoded.id) {
+      return resError(res, "Invalid accessToken", 401);
     }
 
-    const user = await findUserById(decoded.userId);
+    const user = await findUserById(decoded.id);
 
     if (!user) {
-      res.status(401).json({
-        error: "User no longer exists",
-      });
-
-      return;
+      return resError(res, "Unauthorized", 401);
     }
 
     req.user = user;
 
-    next();
+    return next();
   } catch (error) {
-    console.error("Auth middleware error:", error);
-
-    res.status(401).json({
-      error: "Not authorized, invalid token",
-    });
+    console.error("Unauthorized", error);
+    return resError(res, "Unauthorized", 401);
   }
 };

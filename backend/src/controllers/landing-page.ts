@@ -2,7 +2,7 @@ import {
   getPublishedPostBySlug,
   getPublishedPosts,
 } from "@/database/services/landing-page.js";
-import { slugParamId } from "@/schemas/user.js";
+import { slugParamId } from "@/schemas/user.schema.js";
 import { Request, Response } from "express";
 
 const getPosts = async (req: Request, res: Response) => {

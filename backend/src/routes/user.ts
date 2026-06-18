@@ -11,7 +11,7 @@ import {
   dashboardQuerySchema,
   updateUserParamsSchema,
   updateUserBodySchema,
-} from "@/schemas/user.js";
+} from "@/schemas/user.schema.js";
 import { Router } from "express";
 
 const router = Router();

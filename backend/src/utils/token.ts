@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { getToken } from "@/config/token.js";
 import { TokenPayload, TokenType } from "@/types/token.js";
+import { env } from "@/config/env.js";
 
 export const generateToken = (type: TokenType, userId: string): string => {
   const { secret, expiresIn } = getToken(type);
@@ -17,6 +17,22 @@ export const hashToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
 };
 
-export const getExpiresDate = (expiresInSeconds: number): Date => {
+export const getToken = (type: TokenType) => {
+  return {
+    secret:
+      type === "access" ? env.ACCESS_TOKEN_SECRET : env.REFRESH_TOKEN_SECRET,
+    expiresIn:
+      type === "access"
+        ? Number(env.ACCESS_TOKEN_EXPIRES_IN)
+        : Number(env.REFRESH_TOKEN_EXPIRES_IN),
+  };
+};
+
+export const getExpiresDate = (type: TokenType): Date => {
+  const expiresInSeconds =
+    type === "access"
+      ? Number(env.ACCESS_TOKEN_EXPIRES_IN)
+      : Number(env.REFRESH_TOKEN_EXPIRES_IN);
+
   return new Date(Date.now() + expiresInSeconds * 1000);
 };

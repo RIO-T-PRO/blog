@@ -1,6 +1,6 @@
 import { findProfileByUserId } from "@/database/services/profile.js";
 import { findUserById } from "@/database/services/user.js";
-import { DashboardParams } from "@/schemas/user.js";
+import { DashboardParams } from "@/schemas/user.schema.js";
 import { ProfileIdParam } from "@/schemas/profile.js";
 import { NextFunction, Request, Response } from "express";
 

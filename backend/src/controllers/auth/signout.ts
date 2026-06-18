@@ -1,5 +1,10 @@
 import { deleteRefreshToken } from "@/database/services/token.js";
-import { clearRefreshTokenCookie, verifyToken } from "@/utils/index.js";
+import {
+  clearRefreshTokenCookie,
+  resError,
+  resSuccess,
+  verifyToken,
+} from "@/utils/index.js";
 import { Request, Response } from "express";
 
 export const signout = async (req: Request, res: Response) => {
@@ -17,11 +22,9 @@ export const signout = async (req: Request, res: Response) => {
 
     clearRefreshTokenCookie(res);
 
-    return res.status(200).json({
-      message: "Signed out successfully",
-    });
+    return resSuccess(res, null, "Signed out successfully", 200);
   } catch (error) {
     console.error("Signout error", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return resError(res, "Internal server error", 500);
   }
 };

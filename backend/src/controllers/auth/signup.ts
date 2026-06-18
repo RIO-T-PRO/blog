@@ -1,55 +1,57 @@
 import { env } from "@/config/env.js";
 import { upsertRefreshToken } from "@/database/services/token.js";
 import { createUser, findUserByEmail } from "@/database/services/user.js";
-import { RegisterBody } from "@/schemas/auth.js";
+import {
+  CreateUser,
+  SignupInput,
+  SignupSchema,
+} from "@/schemas/user.schema.js";
 import {
   generateToken,
   getExpiresDate,
   hashPassword,
   hashToken,
+  resError,
+  resSuccess,
   setRefreshTokenCookie,
 } from "@/utils/index.js";
 import { Request, Response } from "express";
 
 export const signup = async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = req.body as RegisterBody;
+    const { name, email, password } = req.body as SignupInput;
 
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return res.status(409).json({ message: "Email already in use" });
+      return resError(res, "Email already in use", 409);
     }
 
     const hashedPassword = await hashPassword(password);
     const user = await createUser({
-      name: name,
-      email: email,
-      password: password,
+      name,
+      email,
+      password: hashedPassword,
     });
 
     const accessToken = generateToken("access", user.id);
     const refreshToken = generateToken("refresh", user.id);
-    const expiresAt = getExpiresDate(env.REFRESH_TOKEN_EXPIRES_IN);
+    const expiresAt = getExpiresDate("refresh");
     const hashedRefreshToken = hashToken(refreshToken);
 
     await upsertRefreshToken(user.id, hashedRefreshToken, expiresAt);
     setRefreshTokenCookie(res, refreshToken);
 
-    return res.status(201).json({
-      message: "User created successfully",
-      data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-        },
+    return resSuccess(
+      res,
+      {
+        data: { user: { id: user.id } },
+        accessToken,
       },
-      accessToken,
-    });
+      "User created successfully",
+      201,
+    );
   } catch (error) {
     console.error("Signup error", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return resError(res, "Internal server error", 500);
   }
 };
