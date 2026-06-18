@@ -1,7 +1,11 @@
 import { env } from "@/config/env.js";
 import { upsertRefreshToken } from "@/database/services/token.js";
-import { createUser, findUserByEmail } from "@/database/services/user.js";
-import { CreateUser, SignupInput, SignupSchema } from "@/schemas/user.js";
+import {
+  createUser,
+  findUserByEmail,
+  findUserWithRole,
+} from "@/database/services/user.js";
+import { SignupInput } from "@/schemas/user.js";
 import {
   generateToken,
   getExpiresDate,
@@ -29,11 +33,14 @@ export const signup = async (req: Request, res: Response) => {
       password: hashedPassword,
     });
 
-    const accessToken = generateToken("access", user.id);
+    const userWithRoles = await findUserWithRole(user.id);
+    const roles = userWithRoles?.roles ?? [];
+
+    const accessToken = generateToken("access", user.id, roles);
     const refreshToken = generateToken("refresh", user.id);
+
     const expiresAt = getExpiresDate("refresh");
     const hashedRefreshToken = hashToken(refreshToken);
-
     await upsertRefreshToken(user.id, hashedRefreshToken, expiresAt);
     setRefreshTokenCookie(res, refreshToken);
 

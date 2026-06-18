@@ -1,10 +1,9 @@
-import { env } from "@/config/env.js";
 import {
   deleteRefreshToken,
   findRefreshToken,
   upsertRefreshToken,
 } from "@/database/services/token.js";
-import { findUserById } from "@/database/services/user.js";
+import { findUserWithRole } from "@/database/services/user.js";
 import { TokenPayload } from "@/types/token.js";
 import {
   generateToken,
@@ -20,7 +19,6 @@ import { Request, Response } from "express";
 export const refreshToken = async (req: Request, res: Response) => {
   try {
     const tokenFromCookie = req.cookies?.refreshToken;
-
     if (!tokenFromCookie) {
       return resError(res, "No refresh token provided", 401);
     }
@@ -42,17 +40,25 @@ export const refreshToken = async (req: Request, res: Response) => {
       return resError(res, "Refresh token expired", 403);
     }
 
-    const user = await findUserById(payload.id);
-    if (!user) {
+    const userWithRoles = await findUserWithRole(payload.id);
+    if (!userWithRoles) {
       return resError(res, "User not found", 404);
     }
 
-    const newAccessToken = generateToken("access", user.id);
-    const newRefreshToken = generateToken("refresh", user.id);
+    const newAccessToken = generateToken(
+      "access",
+      userWithRoles.id,
+      userWithRoles.roles,
+    );
+    const newRefreshToken = generateToken("refresh", userWithRoles.id);
     const expiresAt = getExpiresDate("refresh");
     const hashedNewRefreshToken = hashToken(newRefreshToken);
 
-    await upsertRefreshToken(user.id, hashedNewRefreshToken, expiresAt);
+    await upsertRefreshToken(
+      userWithRoles.id,
+      hashedNewRefreshToken,
+      expiresAt,
+    );
     setRefreshTokenCookie(res, newRefreshToken);
 
     return resSuccess(

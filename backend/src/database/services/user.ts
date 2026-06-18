@@ -61,7 +61,7 @@ const softDeleteUser = async (userId: string): Promise<User> => {
   });
 };
 
-export const findUserWithRole = async (userId: string) => {
+const findUserWithRole = async (userId: string) => {
   const dbUser = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -82,7 +82,7 @@ export const findUserWithRole = async (userId: string) => {
   };
 };
 
-export const hasRole = async (
+const hasRole = async (
   userId: string,
   allowedRoles: string[],
 ): Promise<boolean> => {
@@ -102,4 +102,6 @@ export {
   findUserById,
   findUserByEmail,
   softDeleteUser,
+  hasRole,
+  findUserWithRole,
 };

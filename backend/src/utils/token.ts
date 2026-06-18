@@ -3,9 +3,16 @@ import crypto from "crypto";
 import { TokenPayload, TokenType } from "@/types/token.js";
 import { env } from "@/config/env.js";
 
-export const generateToken = (type: TokenType, userId: string): string => {
+export const generateToken = (
+  type: TokenType,
+  userId: string,
+  roles: string[] = [],
+): string => {
   const { secret, expiresIn } = getToken(type);
-  return jwt.sign({ id: userId }, secret, { expiresIn });
+
+  const payload = type === "access" ? { id: userId, roles } : { id: userId };
+
+  return jwt.sign(payload, secret, { expiresIn });
 };
 
 export const verifyToken = (type: TokenType, token: string): TokenPayload => {
@@ -33,6 +40,5 @@ export const getExpiresDate = (type: TokenType): Date => {
     type === "access"
       ? Number(env.ACCESS_TOKEN_EXPIRES_IN)
       : Number(env.REFRESH_TOKEN_EXPIRES_IN);
-
   return new Date(Date.now() + expiresInSeconds * 1000);
 };

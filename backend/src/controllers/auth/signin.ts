@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { findUserByEmail } from "../profile.js";
 import {
   comparePassword,
   generateToken,
@@ -11,6 +10,7 @@ import {
 } from "@/utils/index.js";
 import { upsertRefreshToken } from "@/database/services/token.js";
 import { SigninInput } from "@/schemas/user.js";
+import { findUserByEmail, findUserWithRole } from "@/database/services/user.js";
 
 export const signin = async (req: Request, res: Response) => {
   try {
@@ -26,8 +26,12 @@ export const signin = async (req: Request, res: Response) => {
       return resError(res, "Invalid credentials", 401);
     }
 
-    const accessToken = generateToken("access", user.id);
+    const userWithRoles = await findUserWithRole(user.id);
+    const roles = userWithRoles?.roles ?? [];
+
+    const accessToken = generateToken("access", user.id, roles);
     const refreshToken = generateToken("refresh", user.id);
+
     const expiresAt = getExpiresDate("refresh");
     const hashedRefreshToken = hashToken(refreshToken);
 
