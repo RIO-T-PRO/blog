@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { findUserByEmail } from "../user.js";
+import { findUserByEmail } from "../profile.js";
 import {
   comparePassword,
   generateToken,
@@ -10,7 +10,7 @@ import {
   setRefreshTokenCookie,
 } from "@/utils/index.js";
 import { upsertRefreshToken } from "@/database/services/token.js";
-import { SigninInput } from "@/schemas/user.schema.js";
+import { SigninInput } from "@/schemas/user.js";
 
 export const signin = async (req: Request, res: Response) => {
   try {

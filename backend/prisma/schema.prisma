@@ -13,36 +13,37 @@ enum ArticleStatus {
   ARCHIVED
 }
 
-//
-// USER (AUTH ONLY + REAL NAME)
-//
+enum RoleApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
 model User {
-  id           String   @id @default(uuid()) @db.Uuid
-  name         String
-  email        String   @unique
-  password String   @map("password_hash")
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  email         String   @unique
+  password      String   @map("password_hash")
+  active        Boolean  @default(true)
 
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  active       Boolean  @default(true)
-
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  profile      UserProfile?
-  articles     Article[]
-  comments     Comment[]
-  userRoles    UserRole[]
+  profile       UserProfile?
+  articles      Article[]
+  comments      Comment[]
+  userRoles     UserRole[]
   refreshTokens RefreshToken[]
+
+  roleApplications      RoleApplication[] @relation("RoleApplicationUser")
+  reviewedApplications   RoleApplication[] @relation("RoleApplicationReviewedBy")
 
   @@map("users")
 }
 
-//
-// USER PROFILE (PUBLIC INFO)
-//
 model UserProfile {
   id        String  @id @default(uuid()) @db.Uuid
-
   userId    String  @unique @map("user_id") @db.Uuid
 
   username  String  @unique
@@ -58,9 +59,6 @@ model UserProfile {
   @@map("user_profiles")
 }
 
-//
-// ROLE
-//
 model Role {
   id          Int      @id @default(autoincrement())
   name        String   @unique
@@ -68,33 +66,15 @@ model Role {
 
   createdAt   DateTime @default(now()) @map("created_at")
 
-  userRoles       UserRole[]
-  rolePermissions RolePermission[]
+  userRoles         UserRole[]
+  roleApplications  RoleApplication[]
 
   @@map("roles")
 }
 
-//
-// PERMISSION
-//
-model Permission {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
-
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  rolePermissions RolePermission[]
-
-  @@map("permissions")
-}
-
-//
-// USER_ROLE
-//
 model UserRole {
-  userId     String @map("user_id") @db.Uuid
-  roleId     Int    @map("role_id")
+  userId String @map("user_id") @db.Uuid
+  roleId Int    @map("role_id")
 
   assignedAt DateTime @default(now()) @map("assigned_at")
 
@@ -108,26 +88,32 @@ model UserRole {
   @@map("user_roles")
 }
 
-//
-// ROLE_PERMISSION
-//
-model RolePermission {
-  roleId       Int @map("role_id")
-  permissionId Int @map("permission_id")
+model RoleApplication {
+  id          String   @id @default(uuid()) @db.Uuid
 
-  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  userId      String   @map("user_id") @db.Uuid
+  roleId      Int      @map("role_id")
 
-  @@id([roleId, permissionId])
+  message     String?  @db.Text
+  status      RoleApplicationStatus @default(PENDING)
+
+  reviewedById String?  @map("reviewed_by_id") @db.Uuid
+  reviewedAt   DateTime? @map("reviewed_at")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user       User @relation("RoleApplicationUser", fields: [userId], references: [id], onDelete: Cascade)
+  role       Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("RoleApplicationReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
   @@index([roleId])
-  @@index([permissionId])
+  @@index([status])
 
-  @@map("roles_permissions")
+  @@map("role_applications")
 }
 
-//
-// REFRESH TOKEN
-//
 model RefreshToken {
   id        String   @id @default(uuid()) @db.Uuid
   token     String   @unique @db.Text
@@ -145,9 +131,6 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-//
-// ARTICLE
-//
 model Article {
   id            String        @id @default(uuid()) @db.Uuid
   authorId      String        @map("author_id") @db.Uuid
@@ -174,9 +157,6 @@ model Article {
   @@map("articles")
 }
 
-//
-// COMMENT (nested replies)
-//
 model Comment {
   id        String @id @default(uuid()) @db.Uuid
 

@@ -1,23 +1,19 @@
 import { z } from "zod";
+import { UUIDSchema } from "./common.js";
 
-export const commentIdParamSchema = z.object({
-  comment_id: z.string().uuid("Invalid comment ID"),
+export const CreateCommentSchema = z.object({
+  articleId: UUIDSchema,
+  parentId: UUIDSchema.optional(),
+  content: z.string().min(1).max(5000),
 });
 
-export const createCommentBodySchema = z.object({
-  post_id: z.string().uuid("Invalid post ID"),
-  content: z
-    .string()
-    .min(1, "Content is required")
-    .max(2000, "Content too long"),
-  status: z.enum(["pending", "approved", "spam"]).default("pending"),
+export const UpdateCommentSchema = z.object({
+  content: z.string().min(1).max(5000),
 });
 
-export const updateCommentBodySchema = z.object({
-  content: z.string().min(1).max(2000).optional(),
-  status: z.enum(["pending", "approved", "spam"]).optional(),
+export const CommentIdParam = z.object({
+  commentId: UUIDSchema,
 });
 
-export type CommentIdParam = z.infer<typeof commentIdParamSchema>;
-export type CreateCommentBody = z.infer<typeof createCommentBodySchema>;
-export type UpdateCommentBody = z.infer<typeof updateCommentBodySchema>;
+export type CreateComment = z.infer<typeof CreateCommentSchema>;
+export type UpdateComment = z.infer<typeof UpdateCommentSchema>;

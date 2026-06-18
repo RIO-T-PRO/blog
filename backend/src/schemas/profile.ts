@@ -1,19 +1,18 @@
 import { z } from "zod";
+import { UUIDSchema } from "./common.js";
 
-export const profileIdParamSchema = z.object({
-  profileId: z.string().uuid({ message: "Invalid profile ID format" }),
+export const CreateProfileSchema = z.object({
+  username: z.string().min(3).max(30),
+  bio: z.string().max(500).nullable().optional(),
+  avatarUrl: z.string().url().nullable().optional(),
+  website: z.string().url().nullable().optional(),
 });
 
-export const createProfileBodySchema = z.object({
-  bio: z.string().max(500, "Bio too long").optional(),
-  avatar: z.string().url("Invalid avatar URL").optional(),
+export const UpdateProfileSchema = CreateProfileSchema.partial();
+
+export const ProfileIdParam = z.object({
+  profileId: UUIDSchema,
 });
 
-export const updateProfileBodySchema = z.object({
-  bio: z.string().max(500, "Bio too long").optional(),
-  avatar: z.string().url("Invalid avatar URL").optional(),
-});
-
-export type ProfileIdParam = z.infer<typeof profileIdParamSchema>;
-export type CreateProfileBody = z.infer<typeof createProfileBodySchema>;
-export type UpdateProfileBody = z.infer<typeof updateProfileBodySchema>;
+export type CreateProfile = z.infer<typeof CreateProfileSchema>;
+export type UpdateProfile = z.infer<typeof UpdateProfileSchema>;

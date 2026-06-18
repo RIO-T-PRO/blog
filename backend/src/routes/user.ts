@@ -2,7 +2,7 @@ import {
   userDashboard,
   updateUserController,
   deleteUserController,
-} from "@/controllers/user.js";
+} from "@/controllers/profile.js";
 import { authMiddleware } from "@/middlewares/auth.js";
 import { validate } from "@/middlewares/validate.js";
 import { verifyUser } from "@/middlewares/verify-user.js";
@@ -11,7 +11,7 @@ import {
   dashboardQuerySchema,
   updateUserParamsSchema,
   updateUserBodySchema,
-} from "@/schemas/user.schema.js";
+} from "@/schemas/user.js";
 import { Router } from "express";
 
 const router = Router();

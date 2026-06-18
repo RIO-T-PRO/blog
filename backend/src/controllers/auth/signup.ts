@@ -1,11 +1,7 @@
 import { env } from "@/config/env.js";
 import { upsertRefreshToken } from "@/database/services/token.js";
 import { createUser, findUserByEmail } from "@/database/services/user.js";
-import {
-  CreateUser,
-  SignupInput,
-  SignupSchema,
-} from "@/schemas/user.schema.js";
+import { CreateUser, SignupInput, SignupSchema } from "@/schemas/user.js";
 import {
   generateToken,
   getExpiresDate,

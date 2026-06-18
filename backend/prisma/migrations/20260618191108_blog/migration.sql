@@ -1,6 +1,9 @@
 -- CreateEnum
 CREATE TYPE "ArticleStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
 
+-- CreateEnum
+CREATE TYPE "RoleApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
@@ -39,16 +42,6 @@ CREATE TABLE "roles" (
 );
 
 -- CreateTable
-CREATE TABLE "permissions" (
-    "id" SERIAL NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "permissions_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "user_roles" (
     "user_id" UUID NOT NULL,
     "role_id" INTEGER NOT NULL,
@@ -58,11 +51,18 @@ CREATE TABLE "user_roles" (
 );
 
 -- CreateTable
-CREATE TABLE "roles_permissions" (
+CREATE TABLE "role_applications" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
     "role_id" INTEGER NOT NULL,
-    "permission_id" INTEGER NOT NULL,
+    "message" TEXT,
+    "status" "RoleApplicationStatus" NOT NULL DEFAULT 'PENDING',
+    "reviewed_by_id" UUID,
+    "reviewed_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "roles_permissions_pkey" PRIMARY KEY ("role_id","permission_id")
+    CONSTRAINT "role_applications_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -121,19 +121,19 @@ CREATE UNIQUE INDEX "user_profiles_username_key" ON "user_profiles"("username");
 CREATE UNIQUE INDEX "roles_name_key" ON "roles"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "permissions_name_key" ON "permissions"("name");
-
--- CreateIndex
 CREATE INDEX "user_roles_user_id_idx" ON "user_roles"("user_id");
 
 -- CreateIndex
 CREATE INDEX "user_roles_role_id_idx" ON "user_roles"("role_id");
 
 -- CreateIndex
-CREATE INDEX "roles_permissions_role_id_idx" ON "roles_permissions"("role_id");
+CREATE INDEX "role_applications_user_id_idx" ON "role_applications"("user_id");
 
 -- CreateIndex
-CREATE INDEX "roles_permissions_permission_id_idx" ON "roles_permissions"("permission_id");
+CREATE INDEX "role_applications_role_id_idx" ON "role_applications"("role_id");
+
+-- CreateIndex
+CREATE INDEX "role_applications_status_idx" ON "role_applications"("status");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "refresh_tokens_token_key" ON "refresh_tokens"("token");
@@ -175,10 +175,13 @@ ALTER TABLE "user_roles" ADD CONSTRAINT "user_roles_user_id_fkey" FOREIGN KEY ("
 ALTER TABLE "user_roles" ADD CONSTRAINT "user_roles_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "roles_permissions" ADD CONSTRAINT "roles_permissions_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "role_applications" ADD CONSTRAINT "role_applications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "roles_permissions" ADD CONSTRAINT "roles_permissions_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "permissions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "role_applications" ADD CONSTRAINT "role_applications_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "role_applications" ADD CONSTRAINT "role_applications_reviewed_by_id_fkey" FOREIGN KEY ("reviewed_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

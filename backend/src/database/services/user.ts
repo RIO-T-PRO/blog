@@ -61,6 +61,27 @@ const softDeleteUser = async (userId: string): Promise<User> => {
   });
 };
 
+export const findUserWithRole = async (userId: string) => {
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      userRoles: {
+        include: {
+          role: true,
+        },
+      },
+    },
+  });
+
+  if (!dbUser) return null;
+
+  return {
+    id: dbUser.id,
+    email: dbUser.email,
+    roles: dbUser.userRoles.map((ur) => ur.role.name),
+  };
+};
+
 export {
   createUser,
   updateUser,

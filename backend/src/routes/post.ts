@@ -15,7 +15,7 @@ import {
   createPostSchema,
   postIdParamSchema,
   updatePostSchema,
-} from "@/schemas/post.js";
+} from "@/schemas/article.js";
 
 const router = Router();
 
