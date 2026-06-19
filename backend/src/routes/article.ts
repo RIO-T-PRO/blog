@@ -18,7 +18,11 @@ import express from "express";
 
 const router = express.Router();
 
-router.get("/:articleId", getArticleController);
+router.get(
+  "/:articleId",
+  validate(ArticleIdParamSchema, "params"),
+  getArticleController,
+);
 router.get("/", validate(articleQuerySchema, "query"), getArticlesController);
 
 router.use(authenticate);
@@ -33,8 +37,8 @@ router.post(
 
 router.post(
   "/:articleId",
-  validate(UpdateArticleSchema, "body"),
   validate(ArticleIdParamSchema, "params"),
+  validate(UpdateArticleSchema, "body"),
   requireRole("writer"),
   updateArticleController,
 );

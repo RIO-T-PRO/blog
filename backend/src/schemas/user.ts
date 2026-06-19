@@ -20,10 +20,13 @@ export const CreateUserSchema = z.object({
 
 export const UpdateUserSchema = CreateUserSchema.partial();
 
-export const UserIdSchema = UUIDSchema;
+export const UserIdSchema = z.object({
+  userId: UUIDSchema,
+});
 
 // Types (if needed elsewhere)
 export type SignupInput = z.infer<typeof SignupSchema>;
 export type SigninInput = z.infer<typeof SigninSchema>;
 export type CreateUser = z.infer<typeof CreateUserSchema>;
 export type UpdateUser = z.infer<typeof UpdateUserSchema>;
+export type UserIdParam = z.infer<typeof UserIdSchema>;
