@@ -1,10 +1,10 @@
-import { env } from "@/config/env.js";
 import { upsertRefreshToken } from "@/database/services/token.js";
 import {
   createUser,
   findUserByEmail,
   findUserWithRole,
 } from "@/database/services/user.js";
+import { upsertUserProfile } from "@/database/services/profile.js";
 import { SignupInput } from "@/schemas/user.js";
 import {
   generateToken,
@@ -16,21 +16,31 @@ import {
   setRefreshTokenCookie,
 } from "@/utils/index.js";
 import { Request, Response } from "express";
+import {
+  assignRoleToUser,
+  createRole,
+  findRoleByName,
+} from "@/database/services/role.js";
 
 export const signup = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body as SignupInput;
 
     const existingUser = await findUserByEmail(email);
-    if (existingUser) {
-      return resError(res, "Email already in use", 409);
-    }
+    if (existingUser) return resError(res, "Email already in use", 409);
 
     const hashedPassword = await hashPassword(password);
-    const user = await createUser({
-      name,
-      email,
-      password: hashedPassword,
+    const user = await createUser({ name, email, password: hashedPassword });
+
+    const defaultRoleName = "user";
+    let role = await findRoleByName(defaultRoleName);
+    if (!role) {
+      role = await createRole(defaultRoleName, "Default user role");
+    }
+    await assignRoleToUser(user.id, role.id);
+
+    await upsertUserProfile(user.id, {
+      username: `${name.toLowerCase().replace(/\s+/g, "")}-${user.id.slice(0, 6)}`,
     });
 
     const userWithRoles = await findUserWithRole(user.id);
@@ -38,18 +48,15 @@ export const signup = async (req: Request, res: Response) => {
 
     const accessToken = generateToken("access", user.id, roles);
     const refreshToken = generateToken("refresh", user.id);
-
     const expiresAt = getExpiresDate("refresh");
+
     const hashedRefreshToken = hashToken(refreshToken);
     await upsertRefreshToken(user.id, hashedRefreshToken, expiresAt);
     setRefreshTokenCookie(res, refreshToken);
 
     return resSuccess(
       res,
-      {
-        data: { user: { id: user.id } },
-        accessToken,
-      },
+      { data: { user: { id: user.id } }, accessToken },
       "User created successfully",
       201,
     );
