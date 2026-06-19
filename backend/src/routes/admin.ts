@@ -1,3 +1,4 @@
+import { getArticlesController } from "@/controllers/article.js";
 import { assignRoleHandler, revokeRoleHandler } from "@/controllers/role.js";
 import { authenticate } from "@/middlewares/auth.js";
 import { requireRole } from "@/middlewares/role-require.js";
@@ -22,5 +23,8 @@ router.delete(
   validate(UUIDSchema, "params"),
   revokeRoleHandler,
 );
+
+// articles publish and draft
+router.get("/articles", requireRole("writer"), getArticlesController);
 
 export default router;

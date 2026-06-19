@@ -7,6 +7,7 @@ import authRoutes from "@/routes/auth.js";
 import userRoutes from "@/routes/user.js";
 import adminRoutes from "@/routes/admin.js";
 import writerRoutes from "@/routes/writer.js";
+import articleRoutes from "@/routes/article.js";
 
 dotenv.config();
 
@@ -34,6 +35,9 @@ app.use("/api/writer", writerRoutes);
 
 // user
 app.use("/api/user", userRoutes);
+
+//article
+app.use("/api/article", articleRoutes);
 
 const PORT = process.env.PORT || 8080;
 

@@ -5,12 +5,11 @@ import {
 } from "@/database/services/profile.js";
 import { resError, resSuccess } from "@/utils/response.js";
 import { Request, Response } from "express";
-import { UUIDParam } from "@/schemas/common.js";
 import { UpdateProfile } from "@/schemas/profile.js";
 
-export const getProfile = async (req: Request, res: Response) => {
+export const getProfileService = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id as UUIDParam;
+    const userId = req.user.id;
 
     if (!userId) return resError(res, "Unauthorized", 400);
 
@@ -31,9 +30,13 @@ export const getProfile = async (req: Request, res: Response) => {
   }
 };
 
-export const updateProfileHandler = async (req: Request, res: Response) => {
+export const updateProfileController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id as UUIDParam;
+    const userId = req.user.id;
+
+    const existingProfile = getUserProfile(userId);
+
+    if (!existingProfile) return resError(res, "Profile not found", 400);
 
     const { username, bio, avatarUrl, website } = req.body as UpdateProfile;
 

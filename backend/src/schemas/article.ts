@@ -12,11 +12,22 @@ export const CreateArticleSchema = z.object({
   status: ArticleStatusSchema.optional(),
 });
 
+export const articleQuerySchema = z.object({
+  status: z.string().optional(),
+  search: z.string().optional(),
+  authorId: z.string().optional(),
+  skip: z.coerce.number().int().min(0).optional(),
+  take: z.coerce.number().int().min(1).max(100).optional(),
+});
+
 export const UpdateArticleSchema = CreateArticleSchema.partial();
 
-export const ArticleIdParam = z.object({
+export const ArticleIdParamSchema = z.object({
   articleId: UUIDSchema,
 });
 
 export type CreateArticle = z.infer<typeof CreateArticleSchema>;
 export type UpdateArticle = z.infer<typeof UpdateArticleSchema>;
+export type ArticleStatus = z.infer<typeof ArticleStatusSchema>;
+
+export type ArticleIdParam = z.infer<typeof ArticleIdParamSchema>;
