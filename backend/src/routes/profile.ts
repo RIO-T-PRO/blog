@@ -13,7 +13,7 @@ const router = express.Router();
 router.get("/profile", getProfileService);
 
 router.post(
-  "/profile/update",
+  "/",
   validate(UpdateProfileSchema, "body"),
   authenticate,
   updateProfileController,

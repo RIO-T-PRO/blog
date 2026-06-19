@@ -11,9 +11,10 @@ export const UpdateCommentSchema = z.object({
   content: z.string().min(1).max(5000),
 });
 
-export const CommentIdParam = z.object({
+export const CommentIdSchema = z.object({
   commentId: UUIDSchema,
 });
 
 export type CreateComment = z.infer<typeof CreateCommentSchema>;
 export type UpdateComment = z.infer<typeof UpdateCommentSchema>;
+export type CommentIdParam = z.infer<typeof CommentIdSchema>;

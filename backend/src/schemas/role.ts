@@ -8,10 +8,11 @@ export const CreateRoleSchema = z.object({
 
 export const UpdateRoleSchema = CreateRoleSchema.partial();
 
-export const RoleIdParam = z.object({
-  roleId: UUIDSchema,
+export const RoleIdParamSchema = z.object({
+  userId: z.string(),
+  roleId: z.string(),
 });
 
 export type CreateRole = z.infer<typeof CreateRoleSchema>;
 export type UpdateRole = z.infer<typeof UpdateRoleSchema>;
-export type RoleIdParam = z.infer<typeof RoleIdParam>;
+export type RoleIdParams = z.infer<typeof RoleIdParamSchema>;

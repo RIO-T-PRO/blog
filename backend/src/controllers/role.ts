@@ -7,7 +7,7 @@ import {
   revokeRoleFromUser,
 } from "@/database/services/role.js";
 import { resError, resSuccess } from "@/utils/index.js";
-import { CreateRole, RoleIdParam, UpdateRole } from "@/schemas/role.js";
+import { CreateRole, RoleIdParams, UpdateRole } from "@/schemas/role.js";
 
 export const createRoleHandler = async (req: Request, res: Response) => {
   try {
@@ -22,12 +22,9 @@ export const createRoleHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const assignRoleHandler = async (
-  req: Request<{ userId: string; roleId: string }>,
-  res: Response,
-) => {
+export const assignRoleHandler = async (req: Request, res: Response) => {
   try {
-    const { userId, roleId } = req.params;
+    const { userId, roleId } = req.params as RoleIdParams;
 
     await assignRoleToUser(userId, roleId);
     return resSuccess(res, null, "Role assigned to user", 201);
@@ -38,12 +35,9 @@ export const assignRoleHandler = async (
 };
 
 // Revoke (remove) a role from a user
-export const revokeRoleHandler = async (
-  req: Request<{ userId: string; roleId: string }>,
-  res: Response,
-) => {
+export const revokeRoleHandler = async (req: Request, res: Response) => {
   try {
-    const { userId, roleId } = req.params;
+    const { userId, roleId } = req.params as RoleIdParams;
 
     await revokeRoleFromUser(userId, roleId);
     return resSuccess(res, null, "Role revoked from user");

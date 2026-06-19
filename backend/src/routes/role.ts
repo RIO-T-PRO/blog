@@ -1,9 +1,8 @@
-import { getArticlesController } from "@/controllers/article.js";
 import { assignRoleHandler, revokeRoleHandler } from "@/controllers/role.js";
 import { authenticate } from "@/middlewares/auth.js";
 import { requireRole } from "@/middlewares/role-require.js";
 import { validate } from "@/middlewares/validate.js";
-import { UUIDSchema } from "@/schemas/common.js";
+import { RoleIdParamSchema } from "@/schemas/role.js";
 import express from "express";
 
 const router = express.Router();
@@ -12,19 +11,17 @@ router.use(authenticate);
 
 // role endpoints
 router.post(
-  "/users/:userId/roles/:roleId",
-  validate(UUIDSchema, "params"),
+  "/:userId/roles/:roleId",
+  validate(RoleIdParamSchema, "params"),
   requireRole("admin"),
   assignRoleHandler,
 );
 
 router.delete(
-  "/users/:userId/roles/:roleId",
-  validate(UUIDSchema, "params"),
+  "/:userId/roles/:roleId",
+  validate(RoleIdParamSchema, "params"),
+  requireRole("admin"),
   revokeRoleHandler,
 );
-
-// articles publish and draft
-router.get("/articles", requireRole("writer"), getArticlesController);
 
 export default router;

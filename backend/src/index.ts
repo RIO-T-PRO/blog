@@ -4,10 +4,10 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "@/routes/auth.js";
-import userRoutes from "@/routes/user.js";
-import adminRoutes from "@/routes/admin.js";
-import writerRoutes from "@/routes/writer.js";
+import profileRoutes from "@/routes/profile.js";
+import roleRoutes from "@/routes/role.js";
 import articleRoutes from "@/routes/article.js";
+import commentRoutes from "@/routes/comment.js";
 
 dotenv.config();
 
@@ -27,17 +27,17 @@ app.use(express.json());
 // auth
 app.use("/api/auth", authRoutes);
 
-// admin
-app.use("/api/admin", adminRoutes);
+// role
+app.use("/api/role", roleRoutes);
 
-//writer
-app.use("/api/writer", writerRoutes);
-
-// user
-app.use("/api/user", userRoutes);
+// user profile
+app.use("/api/user", profileRoutes);
 
 //article
-app.use("/api/article", articleRoutes);
+app.use("/api/articles", articleRoutes);
+
+// comment
+app.use("api/comment", commentRoutes);
 
 const PORT = process.env.PORT || 8080;
 

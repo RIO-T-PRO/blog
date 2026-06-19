@@ -29,5 +29,5 @@ export const ArticleIdParamSchema = z.object({
 export type CreateArticle = z.infer<typeof CreateArticleSchema>;
 export type UpdateArticle = z.infer<typeof UpdateArticleSchema>;
 export type ArticleStatus = z.infer<typeof ArticleStatusSchema>;
-
+export type ArticleQuery = z.infer<typeof articleQuerySchema>;
 export type ArticleIdParam = z.infer<typeof ArticleIdParamSchema>;

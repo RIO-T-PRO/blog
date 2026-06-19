@@ -9,6 +9,7 @@ import {
 import { resError, resSuccess } from "@/utils/index.js";
 import {
   ArticleIdParam,
+  ArticleQuery,
   CreateArticle,
   UpdateArticle,
 } from "@/schemas/article.js";
@@ -46,7 +47,7 @@ export const createArticleController = async (req: Request, res: Response) => {
 
 export const getArticlesController = async (req: Request, res: Response) => {
   try {
-    const { status, search, authorId, skip, take } = req.query;
+    const { status, search, authorId, skip, take } = req.query as ArticleQuery;
     const user = req.user;
 
     const isAdminOrWriter = user?.roles?.some((role) =>
@@ -93,12 +94,18 @@ export const getArticleController = async (req: Request, res: Response) => {
 
 export const updateArticleController = async (req: Request, res: Response) => {
   try {
+    const authorId = req.user.id;
     const { articleId } = req.params as ArticleIdParam;
 
     const article = await getArticleById(articleId);
 
     if (!article) {
       return resError(res, "Article not found", 404);
+    }
+
+    const isAdmin = req.user?.roles?.includes("admin");
+    if (article.authorId !== authorId && !isAdmin) {
+      return resError(res, "Forbidden", 403);
     }
 
     const body = req.body as UpdateArticle;
@@ -123,12 +130,18 @@ export const updateArticleController = async (req: Request, res: Response) => {
 
 export const deleteArticleController = async (req: Request, res: Response) => {
   try {
-    const { articleId } = req.params as ArticleIdParam;
+    const authorId = req.user?.id;
 
+    const { articleId } = req.params as ArticleIdParam;
     const article = await getArticleById(articleId);
 
     if (!article) {
       return resError(res, "Article not found", 404);
+    }
+
+    const isAdmin = req.user?.roles?.includes("admin");
+    if (article.authorId !== authorId && !isAdmin) {
+      return resError(res, "Forbidden", 403);
     }
 
     await deleteArticle(article.id);
