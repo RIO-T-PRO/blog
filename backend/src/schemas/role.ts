@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RoleIdSchema } from "./common.js";
+import { UUIDSchema } from "./common.js";
 
 export const CreateRoleSchema = z.object({
   name: z.string().min(2),
@@ -9,8 +9,9 @@ export const CreateRoleSchema = z.object({
 export const UpdateRoleSchema = CreateRoleSchema.partial();
 
 export const RoleIdParam = z.object({
-  roleId: RoleIdSchema,
+  roleId: UUIDSchema,
 });
 
 export type CreateRole = z.infer<typeof CreateRoleSchema>;
 export type UpdateRole = z.infer<typeof UpdateRoleSchema>;
+export type RoleIdParam = z.infer<typeof RoleIdParam>;

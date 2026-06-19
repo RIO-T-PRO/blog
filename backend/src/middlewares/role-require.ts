@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 
-export const requireRole = (...allowedRoles: string[]) => {
+type Roles = "admin" | "writer" | "user";
+
+export const requireRole = (...allowedRoles: Roles[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: "Authentication required" });

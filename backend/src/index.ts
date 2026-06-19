@@ -4,6 +4,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "@/routes/auth.js";
+import userRoutes from "@/routes/user.js";
+import adminRoutes from "@/routes/admin.js";
+import writerRoutes from "@/routes/writer.js";
 
 dotenv.config();
 
@@ -19,6 +22,18 @@ app.use(
 app.use(cookieParser());
 
 app.use(express.json());
+
+// auth
+app.use("/api/auth", authRoutes);
+
+// admin
+app.use("/api/admin", adminRoutes);
+
+//writer
+app.use("/api/writer", writerRoutes);
+
+// user
+app.use("/api/user", userRoutes);
 
 const PORT = process.env.PORT || 8080;
 
