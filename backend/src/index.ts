@@ -4,14 +4,11 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "@/routes/auth.js";
-import writerRoutes from "@/routes/writer.js";
+import profileRoutes from "@/routes/profile.js";
+import roleRoutes from "@/routes/role.js";
+import articleRoutes from "@/routes/article.js";
 import commentRoutes from "@/routes/comment.js";
-import postRoutes from "@/routes/post.js";
-import adminRoutes from "@/routes/admin.js";
-import userProfileRoutes from "@/routes/profile.js";
-import applicationRoutes from "@/routes/writer-application.js";
-import userRoutes from "@/routes/user.js";
-import landingPageRoutes from "@/routes/landing-page.js";
+import roleApplicationRoutes from "@/routes/role-application..js";
 
 dotenv.config();
 
@@ -28,17 +25,25 @@ app.use(cookieParser());
 
 app.use(express.json());
 
-app.use("/api/landing", landingPageRoutes);
+// auth
 app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/writer", writerRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/profile", userProfileRoutes);
-app.use("/api/application", applicationRoutes);
-app.use("/api/post", postRoutes);
+
+// role
+app.use("/api/role", roleRoutes);
+
+// user profile
+app.use("/api/user", profileRoutes);
+
+//article
+app.use("/api/articles", articleRoutes);
+
+// comment
 app.use("/api/comment", commentRoutes);
 
-const PORT = process.env.PORT || 3000;
+// role application
+app.use("/api/application", roleApplicationRoutes);
+
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
   console.log(`Server listening on PORT: ${PORT}`);

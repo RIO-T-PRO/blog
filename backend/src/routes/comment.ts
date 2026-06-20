@@ -1,50 +1,44 @@
-import { Router } from "express";
-import { validate } from "@/middlewares/validate.js";
+import { updateArticleController } from "@/controllers/article.js";
 import {
-  commentIdParamSchema,
-  createCommentBodySchema,
-  updateCommentBodySchema,
-} from "@/schemas/comment.js";
-import { commentPermissions } from "@/middlewares/verify-comment.js";
-import {
-  createComment,
-  updateComment,
-  deleteComment,
-  getComment,
+  createCommentController,
+  deleteCommentController,
+  getCommentsController,
 } from "@/controllers/comment.js";
-import { authMiddleware } from "@/middlewares/auth.js";
-import { verifyUser } from "@/middlewares/verify-user.js";
+import { authenticate } from "@/middlewares/auth.js";
+import { requireRole } from "@/middlewares/role-require.js";
+import { validate } from "@/middlewares/validate.js";
+import { ArticleIdParamSchema } from "@/schemas/article.js";
+import {
+  CommentIdSchema,
+  CreateCommentSchema,
+  UpdateCommentSchema,
+} from "@/schemas/comment.js";
+import express from "express";
 
-const router = Router();
-
-router.use(authMiddleware);
-
-router.post(
-  "/",
-  validate(createCommentBodySchema, "body"),
-  verifyUser,
-  createComment,
-);
+const router = express.Router();
 
 router.get(
-  "/:comment_id",
-  validate(commentIdParamSchema, "params"),
-  commentPermissions,
-  getComment,
+  "/:articleId",
+  validate(ArticleIdParamSchema, "params"),
+  getCommentsController,
 );
 
-router.put(
-  "/comments/:comment_id",
-  validate(commentIdParamSchema, "params"),
-  validate(updateCommentBodySchema, "body"),
-  commentPermissions,
-  updateComment,
+router.use(authenticate);
+
+router.get("/", validate(CreateCommentSchema, "body"), createCommentController);
+
+router.post(
+  "/:commentId",
+  validate(CommentIdSchema, "params"),
+  validate(UpdateCommentSchema, "body"),
+  updateArticleController,
 );
+
 router.delete(
-  "/comments/:comment_id",
-  validate(commentIdParamSchema, "params"),
-  commentPermissions,
-  deleteComment,
+  "/:commentId",
+  validate(CommentIdSchema, "params"),
+  requireRole("admin"),
+  deleteCommentController,
 );
 
 export default router;

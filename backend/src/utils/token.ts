@@ -1,20 +1,44 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { TokenPayload, TokenType } from "@/types/token.js";
+import { env } from "@/config/env.js";
 
-export interface AccessTokenPayload {
-  userId: string;
-  email: string;
-}
+export const generateToken = (
+  type: TokenType,
+  userId: string,
+  roles: string[] = [],
+): string => {
+  const { secret, expiresIn } = getToken(type);
 
-export const generateToken = (payload: { userId: string; email: string }) => {
-  return jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: "7d",
-  });
+  const payload = type === "access" ? { id: userId, roles } : { id: userId };
+
+  return jwt.sign(payload, secret, { expiresIn });
 };
 
-export const verifyToken = (token: string): AccessTokenPayload => {
-  const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-  if (typeof decoded === "string") {
-    throw new Error("Invalid token");
-  }
-  return decoded as AccessTokenPayload;
+export const verifyToken = (type: TokenType, token: string): TokenPayload => {
+  const { secret } = getToken(type);
+  return jwt.verify(token, secret) as TokenPayload;
+};
+
+export const hashToken = (token: string): string => {
+  return crypto.createHash("sha256").update(token).digest("hex");
+};
+
+export const getToken = (type: TokenType) => {
+  return {
+    secret:
+      type === "access" ? env.ACCESS_TOKEN_SECRET : env.REFRESH_TOKEN_SECRET,
+    expiresIn:
+      type === "access"
+        ? Number(env.ACCESS_TOKEN_EXPIRES_IN)
+        : Number(env.REFRESH_TOKEN_EXPIRES_IN),
+  };
+};
+
+export const getExpiresDate = (type: TokenType): Date => {
+  const expiresInSeconds =
+    type === "access"
+      ? Number(env.ACCESS_TOKEN_EXPIRES_IN)
+      : Number(env.REFRESH_TOKEN_EXPIRES_IN);
+  return new Date(Date.now() + expiresInSeconds * 1000);
 };

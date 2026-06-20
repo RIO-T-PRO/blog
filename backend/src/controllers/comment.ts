@@ -1,76 +1,106 @@
 import { Request, Response } from "express";
 import {
-  createComment as createCommentService,
-  updateComment as updateCommentService,
-  deleteComment as deleteCommentService,
+  createComment,
+  getCommentById,
+  hideComment,
+  listCommentsByArticle,
+  updateComment,
 } from "@/database/services/comment.js";
-import { findPostById } from "@/database/services/post.js";
-import { UpdateCommentBody } from "@/schemas/comment.js";
+import { resError, resSuccess } from "@/utils/index.js";
+import { ArticleIdParam } from "@/schemas/article.js";
+import {
+  CommentIdParam,
+  CreateComment,
+  UpdateComment,
+} from "@/schemas/comment.js";
 
-const createComment = async (req: Request, res: Response) => {
-  const { user } = req;
-  const { post_id, content, status } = req.body;
+export const createCommentController = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
 
-  const post = await findPostById(post_id);
-  if (!post) {
-    return res.status(404).json({ error: "Post not found" });
+    const { articleId } = req.params as ArticleIdParam;
+    const { content, parentId } = req.body as CreateComment;
+
+    const comment = await createComment({
+      articleId,
+      userId,
+      content,
+      parentId: parentId ?? null,
+    });
+
+    return resSuccess(
+      res,
+      { data: comment },
+      "Comment created successfully",
+      201,
+    );
+  } catch (error) {
+    console.error("Create comment error", error);
+    return resError(res, "Internal server error", 500);
   }
-
-  const newComment = await createCommentService({
-    content,
-    status,
-    post_id,
-    user_id: user.user_id,
-  });
-
-  return res
-    .status(201)
-    .json({ status: "success", data: { comment: newComment } });
 };
 
-const updateComment = async (req: Request, res: Response) => {
-  const { isAuthor, isAdmin, isPostWriter } = req.permissions!;
-  if (!isAuthor && !isAdmin && !isPostWriter) {
-    return res
-      .status(403)
-      .json({ error: "You can only update your own comments" });
-  }
+export const getCommentsController = async (req: Request, res: Response) => {
+  try {
+    const { articleId } = req.params as ArticleIdParam;
 
-  const data = req.body as UpdateCommentBody;
-  const updatedComment = await updateCommentService(
-    req.comment.comment_id,
-    data,
-  );
-  return res
-    .status(200)
-    .json({ status: "success", data: { comment: updatedComment } });
+    const comments = await listCommentsByArticle(articleId);
+
+    return resSuccess(res, { data: comments }, "Comments fetched successfully");
+  } catch (error) {
+    console.error("Get comments error", error);
+    return resError(res, "Internal server error", 500);
+  }
 };
 
-const deleteComment = async (req: Request, res: Response) => {
-  const { isAuthor, isAdmin, isPostWriter } = req.permissions!;
-  if (!isAuthor && !isPostWriter && !isAdmin) {
-    return res
-      .status(403)
-      .json({ error: "You don't have permission to delete this comment" });
-  }
+export const updateCommentController = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
 
-  await deleteCommentService(req.comment.comment_id);
-  return res
-    .status(200)
-    .json({ status: "success", message: "Comment deleted successfully" });
+    const { commentId } = req.params as CommentIdParam;
+    const comment = await getCommentById(commentId);
+
+    if (!comment) {
+      return resError(res, "Comment not found", 404);
+    }
+
+    const isAdmin = req.user?.roles?.includes("admin");
+    if (comment.user.id !== userId && !isAdmin) {
+      return resError(res, "Forbidden", 403);
+    }
+
+    const { content } = req.body as UpdateComment;
+
+    const updated = await updateComment(comment.id, { content });
+
+    return resSuccess(res, { data: updated }, "Comment updated successfully");
+  } catch (error) {
+    console.error("Update comment error", error);
+    return resError(res, "Internal server error", 500);
+  }
 };
 
-const getComment = async (req: Request, res: Response) => {
-  const { comment, permissions } = req;
-  const { isAuthor, isAdmin, isPostWriter } = permissions!;
+export const deleteCommentController = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
 
-  if (comment.status === "approved" || isAuthor || isAdmin || isPostWriter) {
-    return res.status(200).json({ status: "success", data: { comment } });
+    const { commentId } = req.params as CommentIdParam;
+    const comment = await getCommentById(commentId);
+
+    if (!comment) {
+      return resError(res, "Comment not found", 404);
+    }
+
+    const isAdmin = req.user?.roles?.includes("admin");
+    if (comment.user.id !== userId && !isAdmin) {
+      return resError(res, "Forbidden", 403);
+    }
+
+    await hideComment(comment.id);
+
+    return resSuccess(res, "Comment deleted successfully");
+  } catch (error) {
+    console.error("Delete comment error", error);
+    return resError(res, "Internal server error", 500);
   }
-
-  return res
-    .status(403)
-    .json({ error: "You don't have permission to view this comment" });
 };
-
-export { createComment, updateComment, getComment, deleteComment };
