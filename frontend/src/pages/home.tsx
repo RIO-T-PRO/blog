@@ -1,17 +1,11 @@
-import Footer from "@/components/footer";
 import { FeaturedArticlesSection } from "@/components/home/featured-aticles";
 import { HeroSection } from "@/components/home/hero";
-import { NavBar } from "@/components/home/nav-bar";
 import { NewsletterSection } from "@/components/home/news-letter";
 import LatestReadingSection from "@/components/home/recent-articles";
 
 import { useEffect, useState } from "react";
 
-type HomeProps = {
-  onSearchOpen?: () => void;
-};
-
-const Home = ({ onSearchOpen = () => {} }: HomeProps) => {
+const Home = () => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -39,17 +33,12 @@ const Home = ({ onSearchOpen = () => {} }: HomeProps) => {
         style={{ width: `${progress}%` }}
       />
 
-      {/* NavBar now matches App.tsx pattern */}
-      <NavBar onSearchOpen={onSearchOpen} />
-
       <main className="space-y-20 pb-16">
         <HeroSection />
         <FeaturedArticlesSection />
         <LatestReadingSection />
         <NewsletterSection />
       </main>
-
-      <Footer />
     </div>
   );
 };

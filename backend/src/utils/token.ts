@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { TokenPayload, TokenType } from "@/types/token.js";
+import { TokenPayload, TokenType, UserRoleRelation } from "@/types/token.js";
 import { env } from "@/config/env.js";
 
 export const generateToken = (
@@ -41,4 +41,8 @@ export const getExpiresDate = (type: TokenType): Date => {
       ? Number(env.ACCESS_TOKEN_EXPIRES_IN)
       : Number(env.REFRESH_TOKEN_EXPIRES_IN);
   return new Date(Date.now() + expiresInSeconds * 1000);
+};
+
+export const extractRoleNames = (userRoles: UserRoleRelation): string[] => {
+  return userRoles.map((ur) => ur.role.name);
 };

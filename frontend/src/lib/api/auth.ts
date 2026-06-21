@@ -1,84 +1,46 @@
-import apiFetch from "@/lib/api";
+import { setAccessToken, clearAccessToken } from "@/lib/api/refresh";
+import apiFetch from "./index";
 
 import type {
-  ProfileResponse,
   AuthResponse,
+  ProfileResponse,
+  SignoutResponse,
   SignupPayload,
   SigninPayload,
-  WriterApplication,
-  ApplyWriterPayload,
-  UpdateProfilePayload,
 } from "@/types/auth";
 
-export const signup = (payload: SignupPayload) =>
-  apiFetch<AuthResponse>("/auth/signup", {
+export const signin = async (payload: SigninPayload) => {
+  const response = await apiFetch<AuthResponse>("/auth/signin", {
     method: "POST",
     body: JSON.stringify(payload),
+    skipAuth: true,
   });
 
-export const signin = (payload: SigninPayload) =>
-  apiFetch<AuthResponse>("/auth/signin", {
+  setAccessToken(response.data.accessToken);
+
+  return response;
+};
+
+export const signup = async (payload: SignupPayload) => {
+  const response = await apiFetch<AuthResponse>("/auth/signup", {
     method: "POST",
     body: JSON.stringify(payload),
+    skipAuth: true,
   });
 
-export const updateUser = (
-  userId: string,
-  payload: {
-    fullname: string;
-    email: string;
-  },
-) =>
-  apiFetch(`/user/${userId}`, {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  });
+  setAccessToken(response.data.accessToken);
+
+  return response;
+};
 
 export const getProfile = () => apiFetch<ProfileResponse>("/profile");
 
-export const updateProfile = (
-  profileId: string,
-  payload: UpdateProfilePayload,
-) =>
-  apiFetch(`/profile/${profileId}`, {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  });
-
-export const logout = () =>
-  apiFetch<{ message: string }>("/auth/logout", {
-    method: "POST",
-  });
-
-// export const updateProfile = (
-//   profileId: string,
-//   payload: UpdateProfilePayload,
-// ) =>
-//   apiFetch<ProfileResponse>(`/profile/${profileId}`, {
-//     method: "PATCH",
-//     body: JSON.stringify(payload),
-//   });
-
-export const deleteUser = (userId: string) =>
-  apiFetch<{ message: string }>(`/user/${userId}`, {
-    method: "DELETE",
-  });
-
-export const applyWriter = (payload: ApplyWriterPayload) =>
-  apiFetch<{
-    status: string;
-    data: {
-      application: WriterApplication;
-    };
-  }>("/application/apply", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-export const getMyWriterApplication = () =>
-  apiFetch<{
-    status: string;
-    data: {
-      application: WriterApplication | null;
-    };
-  }>("/application/me");
+export const logout = async () => {
+  try {
+    return await apiFetch<SignoutResponse>("/auth/logout", {
+      method: "POST",
+    });
+  } finally {
+    clearAccessToken();
+  }
+};

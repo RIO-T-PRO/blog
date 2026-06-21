@@ -1,99 +1,88 @@
-export type UserRole = "user" | "writer" | "admin";
+export type ID = string;
 
-export type ApiResponse<T> = {
-  status?: string;
-  message?: string;
+export type ApiSuccess<T> = {
+  success: true;
+  message: string;
   data: T;
+  meta?: PaginationMeta;
 };
 
-export type Writer = {
-  writer_id: string;
-  user_id: string;
-  website?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
+export type ApiError = {
+  success: false;
+  message: string;
+  errors?: unknown;
 };
 
-export type Admin = {
-  admin_id: string;
-  user_id: string;
-  role: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
+export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
+/**
+ * Domain Types
+ */
 export type User = {
-  user_id: string;
-  fullname: string;
+  id: ID;
   email: string;
-  status: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-
-  writer?: Writer | null;
-  admin?: Admin | null;
+  roles: string[];
 };
 
 export type Profile = {
-  user_profile_id: string;
-  user_id: string;
-  bio?: string | null;
-  avatar?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-
-  user: User;
+  id: ID;
+  userId: ID;
+  username: string;
+  bio: string | null;
+  avatarUrl: string | null;
+  website: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
-export type UpdateProfilePayload = {
-  bio?: string;
-  avatar?: string;
-};
-
-export type ProfileResponse = {
-  status: string;
-
-  data: {
-    profile: Profile;
-  };
-};
-
-export type SignupPayload = {
-  fullName: string;
-  email: string;
-  password: string;
-};
-
+/**
+ * Request Payloads
+ */
 export type SigninPayload = {
   email: string;
   password: string;
 };
 
-export type AuthResponse = {
-  message: string;
-
-  data: {
-    user: User;
-  };
+export type SignupPayload = {
+  name: string;
+  email: string;
+  password: string;
 };
 
-// export type UpdateProfilePayload = {
-//   fullName?: string;
-//   bio?: string;
-//   avatar?: string;
-// };
-
-export type ApplyWriterPayload = {
-  website?: string;
-  reason: string;
+export type UpdateProfilePayload = {
+  username?: string;
+  bio?: string | null;
+  avatarUrl?: string | null;
+  website?: string | null;
 };
 
-export type WriterApplication = {
-  application_id: string;
-  user_id: string;
-  website?: string;
-  reason: string;
-  status: "pending" | "approved" | "rejected";
-  createdAt: string;
-  updatedAt: string;
+/**
+ * Response Payloads
+ */
+export type AuthData = {
+  user: User;
+  profile: Profile | null;
+  accessToken: string;
 };
+
+export type ProfileData = {
+  user: User;
+  profile: Profile | null;
+};
+
+export type RefreshTokenData = {
+  accessToken: string;
+};
+
+export type SignoutData = null;
+
+/**
+ * Endpoint Responses
+ */
+export type AuthResponse = ApiSuccess<AuthData>;
+
+export type ProfileResponse = ApiSuccess<ProfileData>;
+
+export type RefreshTokenResponse = ApiSuccess<RefreshTokenData>;
+
+export type SignoutResponse = ApiSuccess<SignoutData>;

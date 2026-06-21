@@ -17,19 +17,15 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-
   const [loading, setLoading] = useState(true);
-
   const [initialized, setInitialized] = useState(false);
 
-  // RESTORE SESSION ON APP LOAD
   useEffect(() => {
     const restoreSession = async () => {
       try {
         const response = await getProfile();
-        if (response?.data?.profile?.user) {
-          setUser(response.data.profile.user);
-        }
+
+        setUser(response.data.user);
       } catch (error) {
         console.error("Session restore failed:", error);
         setUser(null);
@@ -48,13 +44,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await signin(payload);
 
-      if (response?.data?.user) {
-        setUser(response.data.user);
-      } else {
-        console.error("Signin failed: no user data in response");
-      }
+      setUser(response.data.user);
     } catch (error) {
       console.error("Signin error:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -66,13 +59,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await signup(payload);
 
-      if (response?.data?.user) {
-        setUser(response.data.user);
-      } else {
-        console.error("Signup failed: no user data in response");
-      }
+      setUser(response.data.user);
     } catch (error) {
       console.error("Signup error:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -86,6 +76,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(null);
     } catch (error) {
       console.error("Logout error:", error);
+      throw error;
     } finally {
       setLoading(false);
     }

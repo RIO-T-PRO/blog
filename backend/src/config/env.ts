@@ -6,10 +6,13 @@ dotenv.config();
 const envSchema = z.object({
   PORT: z.coerce.number().default(8080),
   DATABASE_URL: z.string().min(1),
+
   ACCESS_TOKEN_SECRET: z.string().min(1),
   ACCESS_TOKEN_EXPIRES_IN: z.coerce.number(),
+
   REFRESH_TOKEN_SECRET: z.string().min(1),
   REFRESH_TOKEN_EXPIRES_IN: z.coerce.number(),
+
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().positive(),
 });
 

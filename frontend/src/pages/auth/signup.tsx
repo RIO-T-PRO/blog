@@ -43,8 +43,9 @@ const SignupPage = () => {
     setStatus("submitting");
 
     try {
+      // ✅ FIXED: use "name" to match SignupPayload
       await signup({
-        fullName: form.name,
+        name: form.name,
         email: form.email,
         password: form.password,
       });

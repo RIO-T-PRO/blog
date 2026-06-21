@@ -3,6 +3,7 @@ import { verifyToken } from "@/utils/token.js";
 import { findUserById, findUserWithRole } from "@/database/services/user.js";
 import { TokenPayload } from "@/types/token.js";
 import { resError } from "@/utils/index.js";
+import { getUserProfile } from "@/database/services/profile.js";
 
 export const authenticate = async (
   req: Request,

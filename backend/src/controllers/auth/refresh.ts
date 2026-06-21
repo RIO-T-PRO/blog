@@ -3,7 +3,7 @@ import {
   findRefreshToken,
   upsertRefreshToken,
 } from "@/database/services/token.js";
-import { findUserWithRole } from "@/database/services/user.js";
+import { findUserWithRoleAndProfile } from "@/database/services/user.js";
 import { TokenPayload } from "@/types/token.js";
 import {
   generateToken,
@@ -40,22 +40,25 @@ export const refreshToken = async (req: Request, res: Response) => {
       return resError(res, "Refresh token expired", 403);
     }
 
-    const userWithRoles = await findUserWithRole(payload.id);
-    if (!userWithRoles) {
+    const userWithRoleAnProfile = await findUserWithRoleAndProfile(payload.id);
+    if (!userWithRoleAnProfile) {
       return resError(res, "User not found", 404);
     }
 
     const newAccessToken = generateToken(
       "access",
-      userWithRoles.id,
-      userWithRoles.roles,
+      userWithRoleAnProfile.user.id,
+      userWithRoleAnProfile.user.roles,
     );
-    const newRefreshToken = generateToken("refresh", userWithRoles.id);
+    const newRefreshToken = generateToken(
+      "refresh",
+      userWithRoleAnProfile.user.id,
+    );
     const expiresAt = getExpiresDate("refresh");
     const hashedNewRefreshToken = hashToken(newRefreshToken);
 
     await upsertRefreshToken(
-      userWithRoles.id,
+      userWithRoleAnProfile.user.id,
       hashedNewRefreshToken,
       expiresAt,
     );

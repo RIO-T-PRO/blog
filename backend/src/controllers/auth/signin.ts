@@ -10,7 +10,11 @@ import {
 } from "@/utils/index.js";
 import { upsertRefreshToken } from "@/database/services/token.js";
 import { SigninInput } from "@/schemas/user.js";
-import { findUserByEmail, findUserWithRole } from "@/database/services/user.js";
+import {
+  findUserByEmail,
+  findUserWithRoleAndProfile,
+} from "@/database/services/user.js";
+import { getUserProfile } from "@/database/services/profile.js";
 
 export const signin = async (req: Request, res: Response) => {
   try {
@@ -26,8 +30,8 @@ export const signin = async (req: Request, res: Response) => {
       return resError(res, "Invalid credentials", 401);
     }
 
-    const userWithRoles = await findUserWithRole(user.id);
-    const roles = userWithRoles?.roles ?? [];
+    const userWith = await findUserWithRoleAndProfile(user.id);
+    const roles = userWith?.user.roles ?? [];
 
     const accessToken = generateToken("access", user.id, roles);
     const refreshToken = generateToken("refresh", user.id);
@@ -41,8 +45,7 @@ export const signin = async (req: Request, res: Response) => {
     return resSuccess(
       res,
       {
-        data: { user: { id: user.id } },
-        accessToken,
+        data: { user: userWith?.user, profile: userWith?.profile, accessToken },
       },
       "Signed in successfully",
       200,
