@@ -1,7 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { FaFeatherAlt } from "react-icons/fa";
 
-import Container from "./ui/container";
+import Container from "./layout/container";
 
 type Link = {
   label: string;

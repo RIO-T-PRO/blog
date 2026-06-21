@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaFeatherAlt } from "react-icons/fa";
 import { FaArrowLeftLong, FaEye, FaEyeSlash } from "react-icons/fa6";
 
-import Container from "@/components/ui/container";
+import Container from "@/components/layout/container";
 import { useAuth } from "@/lib/context/auth-context";
 
 const LoginPage = () => {

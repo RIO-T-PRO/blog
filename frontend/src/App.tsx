@@ -1,49 +1,58 @@
 import { Routes, Route, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import HomePage from "@/pages/home";
 import LoginPage from "@/pages/auth/signin";
 import SignupPage from "@/pages/auth/signup";
 import NotFoundPage from "@/pages/not-found";
 
-import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/home/search-modal";
 
-import DashboardLayout from "@/dashboard-layout";
+import { NavBar } from "./components/home/nav-bar";
 
 const App = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
 
-  const authRoutes = ["/signin", "/signup"];
+  const routeFlags = useMemo(() => {
+    const pathname = location.pathname;
 
-  const knownRoutes = [
-    "/",
-    "/essays",
-    "/culture",
-    "/science",
-    "/archive",
-    "/signup",
-    "/signin",
-    "/dashboard",
-    "/dashboard/settings",
-    "/dashboard/write",
-    "/dashboard/writer/posts",
-  ];
+    const isAuthPage = pathname === "/signin" || pathname === "/signup";
+    // const isDashboard = pathname.startsWith("/dashboard");
 
-  const isAuthPage = authRoutes.includes(location.pathname);
-  const isNotFoundPage = !knownRoutes.includes(location.pathname);
+    const knownRoutes = [
+      "/",
+      "/essays",
+      "/culture",
+      "/science",
+      "/archive",
+      "/signup",
+      "/signin",
+      "/dashboard",
+      "/dashboard/settings",
+      "/dashboard/write",
+      "/dashboard/writer/posts",
+    ];
 
-  const isDashboard = location.pathname.startsWith("/dashboard");
-  const hideLayout = isAuthPage || isNotFoundPage || isDashboard;
+    const isNotFoundPage = !knownRoutes.includes(pathname);
+
+    const hideLayout = isAuthPage || isNotFoundPage;
+
+    return { hideLayout };
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setSearchOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-background">
-      {!hideLayout && <Navbar onSearchOpen={() => setSearchOpen(true)} />}
+      {!routeFlags.hideLayout && (
+        <NavBar onSearchOpen={() => setSearchOpen(true)} />
+      )}
 
       <Routes>
-        {/* PUBLIC */}
         <Route path="/" element={<HomePage />} />
         <Route path="/essays" element={<div>Essays</div>} />
         <Route path="/culture" element={<div>Culture</div>} />
@@ -52,14 +61,14 @@ const App = () => {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/signin" element={<LoginPage />} />
 
-        <Route path="/dashboard" element={<DashboardLayout />} />
-
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
-      {!hideLayout && <Footer />}
+      {!routeFlags.hideLayout && <Footer />}
 
-      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      {!routeFlags.hideLayout && (
+        <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      )}
     </div>
   );
 };
