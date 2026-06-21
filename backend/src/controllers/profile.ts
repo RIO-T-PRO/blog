@@ -15,15 +15,13 @@ export const getProfileService = async (req: Request, res: Response) => {
 
     const userWithRoleAndProfile = await findUserWithRoleAndProfile(userId);
 
-    if (!updateUserProfile) return null;
+    if (!userWithRoleAndProfile) return null;
 
     return resSuccess(
       res,
       {
-        data: {
-          user: userWithRoleAndProfile?.user,
-          profile: userWithRoleAndProfile?.profile,
-        },
+        user: userWithRoleAndProfile?.user,
+        profile: userWithRoleAndProfile?.profile,
       },
       "Profile updated",
     );

@@ -18,12 +18,16 @@ type NavBarProps = {
 export const NavBar = ({ onSearchOpen }: NavBarProps) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout, loading, initialized } = useAuth();
+  const { user, profile, logout, loading, initialized } = useAuth();
 
   const handleSignOut = async () => {
     await logout();
     setOpen(false);
     navigate("/");
+  };
+
+  const handleProfileClick = () => {
+    setOpen(false); // close dropdown when navigating
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -34,7 +38,7 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
   return (
     <nav className="sticky top-0 z-40 w-full border-b border-outline-variant bg-surface/95 backdrop-blur">
       <Container className="flex h-16 items-center">
-        {/* Three‑column layout: left / center / right */}
+        {/* Three‑column grid: left logo / center links / right actions */}
         <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-4">
           {/* LEFT: Logo */}
           <NavLink
@@ -63,9 +67,8 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
             </NavLink>
           </div>
 
-          {/* RIGHT: Actions (search + auth) */}
+          {/* RIGHT: Search + Auth */}
           <div className="hidden items-center gap-4 justify-self-end md:flex">
-            {/* Search button */}
             <button
               onClick={onSearchOpen}
               className="flex items-center rounded-full border border-outline-variant bg-surface-lowest px-4 py-2 shadow-sm transition-colors hover:border-primary-container"
@@ -75,7 +78,6 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
               <span className="text-sm text-on-surface-variant">Search...</span>
             </button>
 
-            {/* Auth / Sign Up */}
             <div className="relative flex items-center gap-3">
               {!initialized ? null : user ? (
                 <>
@@ -85,6 +87,7 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
                     className="flex items-center gap-2 rounded-full p-1 transition hover:bg-surface-container-low"
                   >
                     <Avatar
+                      name={profile?.username} // real name from profile
                       email={user.email}
                       id={user.id}
                       size={9}
@@ -100,16 +103,19 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
 
                   {open && (
                     <>
+                      {/* Invisible backdrop to close on outside click */}
                       <button
                         type="button"
                         aria-label="Close menu"
                         onClick={() => setOpen(false)}
                         className="fixed inset-0 z-40"
                       />
-                      <div className="absolute right-0 z-50 mt-3 w-72 overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-xl">
+                      {/* FIXED DROPDOWN: positioned below the avatar */}
+                      <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-xl">
                         <div className="border-b border-outline-variant p-4">
                           <div className="flex items-center gap-3">
                             <Avatar
+                              name={profile?.username}
                               email={user.email}
                               id={user.id}
                               size={10}
@@ -117,7 +123,7 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
                             />
                             <div className="min-w-0">
                               <p className="truncate font-semibold text-on-surface">
-                                User
+                                {profile?.username ?? "User"}
                               </p>
                               <p className="truncate text-sm text-on-surface-variant">
                                 {user.email}
@@ -128,6 +134,7 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
                         <div className="p-2">
                           <Link
                             to="/profile"
+                            onClick={handleProfileClick}
                             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-low"
                           >
                             <FaUser className="text-on-surface-variant" />
@@ -164,9 +171,12 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
           </div>
         </div>
 
-        {/* Mobile hamburger / search (keeps full width) */}
-        <div className="flex w-full items-center gap-3 md:hidden">
-          {/* maybe a separate mobile menu */}
+        {/* Mobile (unchanged) */}
+        <div className="flex items-center gap-3 md:hidden">
+          <button onClick={onSearchOpen} className="p-2 text-on-surface">
+            <FaSearch className="h-4 w-4" />
+          </button>
+          {/* optional mobile menu trigger */}
         </div>
       </Container>
     </nav>

@@ -33,7 +33,7 @@ export const signup = async (payload: SignupPayload) => {
   return response;
 };
 
-export const getProfile = () => apiFetch<ProfileResponse>("/profile");
+export const getProfile = () => apiFetch<ProfileResponse>("/user/profile");
 
 export const logout = async () => {
   try {

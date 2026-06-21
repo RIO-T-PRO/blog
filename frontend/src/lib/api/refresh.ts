@@ -32,11 +32,10 @@ export const refreshAccessToken = async (): Promise<string> => {
       data?.message ||
       (typeof data?.error === "string" ? data.error : null) ||
       `Request failed: ${res.status}`;
-
     throw new Error(message);
   }
 
-  const token = data?.accessToken as string | undefined;
+  const token = data?.data?.accessToken as string | undefined;
 
   if (!token) {
     clearAccessToken();

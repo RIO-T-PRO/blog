@@ -10,12 +10,14 @@ import express from "express";
 const router = express.Router();
 
 // profile endpoints
+
+router.use(authenticate);
+
 router.get("/profile", getProfileService);
 
 router.post(
   "/",
   validate(UpdateProfileSchema, "body"),
-  authenticate,
   updateProfileController,
 );
 
