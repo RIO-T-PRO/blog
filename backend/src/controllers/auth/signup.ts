@@ -60,7 +60,9 @@ export const signup = async (req: Request, res: Response) => {
     return resSuccess(
       res,
       {
-        data: { user: userWith?.user, profile: userWith?.profile, accessToken },
+        user: userWith?.user,
+        profile: userWith?.profile,
+        accessToken,
       },
       "User created successfully",
       201,

@@ -40,10 +40,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleSignin = async (payload: SigninPayload): Promise<void> => {
     setLoading(true);
-
     try {
       const response = await signin(payload);
-
+      console.log("signin response:", response);
+      console.log("user from response:", response.data.user);
+      console.log("user from profile:", response.data.profile);
       setUser(response.data.user);
     } catch (error) {
       console.error("Signin error:", error);
