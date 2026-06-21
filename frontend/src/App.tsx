@@ -7,7 +7,7 @@ import SignupPage from "@/pages/auth/signup";
 import NotFoundPage from "@/pages/not-found";
 
 import Footer from "@/components/footer";
-import SearchModal from "@/components/home/search-modal";
+import SearchModal from "@/components/ui/search-modal";
 import { NavBar } from "./components/nav-bar";
 
 const App = () => {

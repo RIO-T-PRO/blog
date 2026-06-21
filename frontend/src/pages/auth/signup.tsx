@@ -43,19 +43,14 @@ const SignupPage = () => {
     setStatus("submitting");
 
     try {
-      // ✅ FIXED: use "name" to match SignupPayload
       await signup({
         name: form.name,
         email: form.email,
         password: form.password,
       });
-
-      setTimeout(() => {
-        if (!user) {
-          setStatus("idle");
-          setError("Failed to create account. Please try again.");
-        }
-      }, 2000);
+      setStatus("success");
+      // ✅ Redirect after a short delay so the user sees "Success!"
+      setTimeout(() => navigate("/"), 1200);
     } catch (err) {
       console.error(err);
       setStatus("idle");

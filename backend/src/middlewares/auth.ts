@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "@/utils/token.js";
-import { findUserById, findUserWithRole } from "@/database/services/user.js";
+import { findUserWithRoleAndProfile } from "@/database/services/user.js";
 import { TokenPayload } from "@/types/token.js";
 import { resError } from "@/utils/index.js";
 import { getUserProfile } from "@/database/services/profile.js";
@@ -25,13 +25,13 @@ export const authenticate = async (
       return resError(res, "Invalid accessToken", 401);
     }
 
-    const user = await findUserWithRole(decoded.id);
+    const userWithRoleAnProfile = await findUserWithRoleAndProfile(decoded.id);
 
-    if (!user) {
+    if (!userWithRoleAnProfile) {
       return resError(res, "Unauthorized", 401);
     }
 
-    req.user = user;
+    req.user = userWithRoleAnProfile.user;
 
     return next();
   } catch (error) {

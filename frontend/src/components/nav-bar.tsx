@@ -9,7 +9,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import { Container } from "./layout/container";
-import { useAuth } from "@/lib/context/auth-context"; // adjust path as needed
+import { useAuth } from "@/lib/context/auth-context";
 import Avatar from "./ui/avatar";
 
 type NavBarProps = {
@@ -48,99 +48,21 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
 
         {/* DESKTOP NAV */}
         <div className="hidden items-center gap-6 md:flex">
-          <NavLink to="/" className={linkClass}>
-            Home
-          </NavLink>
-          <NavLink to="/essays" className={linkClass}>
-            Essays
-          </NavLink>
-          <NavLink to="/culture" className={linkClass}>
-            Culture
-          </NavLink>
-          <NavLink to="/science" className={linkClass}>
-            Science
-          </NavLink>
-
-          {/* AUTH: Avatar dropdown OR Sign In */}
-          {!initialized ? null : user ? (
-            <>
-              <button
-                type="button"
-                onClick={() => setOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-full p-1 transition hover:bg-surface-container-low"
-              >
-                <Avatar
-                  email={user.email} // no name in User type
-                  id={user.id}
-                  size={9}
-                  rounded="full"
-                  clickable
-                />
-                <FaChevronDown
-                  className={`hidden text-xs text-on-surface-variant transition-transform md:block ${
-                    open ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {open && (
-                <>
-                  {/* Click-outside backdrop */}
-                  <button
-                    type="button"
-                    aria-label="Close menu"
-                    onClick={() => setOpen(false)}
-                    className="fixed inset-0 z-40"
-                  />
-
-                  <div className="absolute right-0 z-50 mt-3 w-72 overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-xl">
-                    <div className="border-b border-outline-variant p-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar
-                          email={user.email}
-                          id={user.id}
-                          size={10}
-                          rounded="full"
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-on-surface">
-                            User
-                          </p>
-                          <p className="truncate text-sm text-on-surface-variant">
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-2">
-                      <Link
-                        to="/profile"
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-low"
-                      >
-                        <FaUser className="text-on-surface-variant" />
-                        Profile
-                      </Link>
-
-                      <button
-                        type="button"
-                        onClick={handleSignOut}
-                        disabled={loading}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-error transition-colors hover:bg-surface-container-low disabled:opacity-60"
-                      >
-                        <FaSignOutAlt />
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </>
-          ) : (
-            <NavLink to="/signin" className={linkClass}>
-              Sign In
+          {/* LINKS GROUP */}
+          <div className="flex items-center gap-6">
+            <NavLink to="/" className={linkClass}>
+              Home
             </NavLink>
-          )}
+            <NavLink to="/essays" className={linkClass}>
+              Essays
+            </NavLink>
+            <NavLink to="/culture" className={linkClass}>
+              Culture
+            </NavLink>
+            <NavLink to="/science" className={linkClass}>
+              Science
+            </NavLink>
+          </div>
 
           {/* SEARCH BUTTON */}
           <button
@@ -152,16 +74,97 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
             <span className="text-sm text-on-surface-variant">Search...</span>
           </button>
 
-          {/* CTA */}
-          <NavLink
-            to="/dashboard/write"
-            className="rounded-lg bg-primary-container px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition-colors hover:bg-primary"
-          >
-            Start Writing
-          </NavLink>
+          {/* AUTH + SIGN UP */}
+          <div className="relative flex items-center gap-3">
+            {!initialized ? null : user ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setOpen((prev) => !prev)}
+                  className="flex items-center gap-2 rounded-full p-1 transition hover:bg-surface-container-low"
+                >
+                  <Avatar
+                    email={user.email}
+                    id={user.id}
+                    size={9}
+                    rounded="full"
+                    clickable
+                  />
+                  <FaChevronDown
+                    className={`hidden text-xs text-on-surface-variant transition-transform md:block ${
+                      open ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {open && (
+                  <>
+                    {/* Backdrop */}
+                    <button
+                      type="button"
+                      aria-label="Close menu"
+                      onClick={() => setOpen(false)}
+                      className="fixed inset-0 z-40"
+                    />
+                    {/* Dropdown */}
+                    <div className="absolute right-0 z-50 mt-3 w-72 overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-xl">
+                      <div className="border-b border-outline-variant p-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar
+                            email={user.email}
+                            id={user.id}
+                            size={10}
+                            rounded="full"
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-on-surface">
+                              User
+                            </p>
+                            <p className="truncate text-sm text-on-surface-variant">
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-2">
+                        <Link
+                          to="/profile"
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-low"
+                        >
+                          <FaUser className="text-on-surface-variant" />
+                          Profile
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={handleSignOut}
+                          disabled={loading}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-error transition-colors hover:bg-surface-container-low disabled:opacity-60"
+                        >
+                          <FaSignOutAlt />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <NavLink to="/signin" className={linkClass}>
+                  Sign In
+                </NavLink>
+                <NavLink
+                  to="/signup"
+                  className="rounded-lg bg-primary-container px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition-colors hover:bg-primary"
+                >
+                  Sign Up
+                </NavLink>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* MOBILE */}
+        {/* MOBILE (unchanged) */}
         <div className="flex items-center gap-3 md:hidden">
           <button
             onClick={onSearchOpen}

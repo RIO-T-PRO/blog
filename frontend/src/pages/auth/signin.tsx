@@ -42,13 +42,8 @@ const LoginPage = () => {
 
     try {
       await signin({ email: form.email, password: form.password });
-      // Success will set user, navigation via useEffect
-      setTimeout(() => {
-        if (!user) {
-          setStatus("idle");
-          setError("Invalid email or password. Please try again.");
-        }
-      }, 2000);
+      // ✅ Redirect immediately after success
+      navigate("/");
     } catch (err) {
       console.error(err);
       setStatus("idle");
