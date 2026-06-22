@@ -6,6 +6,7 @@ import {
   FaChevronDown,
   FaUser,
   FaSignOutAlt,
+  FaTachometerAlt,
 } from "react-icons/fa";
 import { Container } from "./layout/container";
 import { useAuth } from "@/lib/context/auth-context";
@@ -15,7 +16,7 @@ type NavBarProps = {
   onSearchOpen?: () => void;
 };
 
-export const NavBar = ({ onSearchOpen }: NavBarProps) => {
+const NavBar = ({ onSearchOpen }: NavBarProps) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { user, profile, logout, loading, initialized } = useAuth();
@@ -26,9 +27,7 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
     navigate("/");
   };
 
-  const handleProfileClick = () => {
-    setOpen(false); // close dropdown when navigating
-  };
+  const closeDropdown = () => setOpen(false);
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     isActive
@@ -38,17 +37,21 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
   return (
     <nav className="sticky top-0 z-40 w-full border-b border-outline-variant bg-surface/95 backdrop-blur">
       <Container className="flex h-16 items-center">
-        {/* Three‑column grid: left logo / center links / right actions */}
         <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-4">
           {/* LEFT: Logo */}
           <NavLink
             to="/"
-            className="flex items-center gap-2 text-xl font-bold text-on-surface justify-self-start"
+            className="flex items-center gap-3 text-xl font-semibold text-on-surface justify-self-start"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-highest text-primary transition-colors hover:bg-primary-container hover:text-on-primary-container">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-container text-on-primary">
               <FaFeatherAlt className="h-4 w-4" />
             </span>
-            Chronicle
+            <div className="flex flex-col leading-none">
+              <span className="font-serif">Editorial</span>
+              <span className="text-[10px] font-medium text-on-surface-variant">
+                Journal
+              </span>
+            </div>
           </NavLink>
 
           {/* CENTER: Navigation links */}
@@ -67,7 +70,7 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
             </NavLink>
           </div>
 
-          {/* RIGHT: Search + Auth */}
+          {/* RIGHT: Search + Auth (unchanged) */}
           <div className="hidden items-center gap-4 justify-self-end md:flex">
             <button
               onClick={onSearchOpen}
@@ -87,7 +90,7 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
                     className="flex items-center gap-2 rounded-full p-1 transition hover:bg-surface-container-low"
                   >
                     <Avatar
-                      name={profile?.username} // real name from profile
+                      name={profile?.username}
                       email={user.email}
                       id={user.id}
                       size={9}
@@ -103,14 +106,12 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
 
                   {open && (
                     <>
-                      {/* Invisible backdrop to close on outside click */}
                       <button
                         type="button"
                         aria-label="Close menu"
-                        onClick={() => setOpen(false)}
+                        onClick={closeDropdown}
                         className="fixed inset-0 z-40"
                       />
-                      {/* FIXED DROPDOWN: positioned below the avatar */}
                       <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-xl">
                         <div className="border-b border-outline-variant p-4">
                           <div className="flex items-center gap-3">
@@ -121,24 +122,42 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
                               size={10}
                               rounded="full"
                             />
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                               <p className="truncate font-semibold text-on-surface">
                                 {profile?.username ?? "User"}
                               </p>
                               <p className="truncate text-sm text-on-surface-variant">
                                 {user.email}
                               </p>
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {(user.roles || []).map((role) => (
+                                  <span
+                                    key={role}
+                                    className="rounded-full bg-primary-container px-2 py-0.5 text-[10px] font-semibold text-on-primary"
+                                  >
+                                    {role}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         </div>
                         <div className="p-2">
                           <Link
-                            to="/profile"
-                            onClick={handleProfileClick}
+                            to="/dashboard"
+                            onClick={closeDropdown}
+                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-low"
+                          >
+                            <FaTachometerAlt className="text-on-surface-variant" />
+                            Dashboard
+                          </Link>
+                          <Link
+                            to="/dashboard/settings"
+                            onClick={closeDropdown}
                             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-low"
                           >
                             <FaUser className="text-on-surface-variant" />
-                            Profile
+                            Profile Settings
                           </Link>
                           <button
                             type="button"
@@ -147,7 +166,7 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
                             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-error transition-colors hover:bg-surface-container-low disabled:opacity-60"
                           >
                             <FaSignOutAlt />
-                            Sign Out
+                            Logout {/* ← changed from "Sign Out" */}
                           </button>
                         </div>
                       </div>
@@ -171,14 +190,15 @@ export const NavBar = ({ onSearchOpen }: NavBarProps) => {
           </div>
         </div>
 
-        {/* Mobile (unchanged) */}
+        {/* Mobile */}
         <div className="flex items-center gap-3 md:hidden">
           <button onClick={onSearchOpen} className="p-2 text-on-surface">
             <FaSearch className="h-4 w-4" />
           </button>
-          {/* optional mobile menu trigger */}
         </div>
       </Container>
     </nav>
   );
 };
+
+export default NavBar;

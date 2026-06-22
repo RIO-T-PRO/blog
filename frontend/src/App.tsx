@@ -1,63 +1,64 @@
-import { Routes, Route, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Routes, Route } from "react-router-dom";
 
 import HomePage from "@/pages/home";
 import LoginPage from "@/pages/auth/signin";
 import SignupPage from "@/pages/auth/signup";
 import NotFoundPage from "@/pages/not-found";
+import PublicLayout from "./components/layout/public";
+import AuthLayout from "./components/layout/auth";
+import ProtectedRoute from "./components/protected-routes";
+import DashboardLayout from "./components/layout/dashboard";
+import DashboardHome from "./components/dashboard";
 
-import Footer from "@/components/footer";
-import SearchModal from "@/components/ui/search-modal";
-import { NavBar } from "./components/nav-bar";
-
-const App = () => {
-  const [searchOpen, setSearchOpen] = useState(false);
-  const location = useLocation();
-
-  const pathname = location.pathname;
-
-  // AUTH PAGES
-  const isAuthPage = pathname === "/signin" || pathname === "/signup";
-
-  // DASHBOARD PAGES
-  const isDashboard = pathname.startsWith("/dashboard");
-
-  // GLOBAL LAYOUT RULE
-  const hideLayout = isAuthPage || isDashboard;
-
-  // Close search on route change
-  useEffect(() => {
-    setSearchOpen(false);
-  }, [pathname]);
-
+export default function App() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* NAVBAR */}
-      {!hideLayout && <NavBar onSearchOpen={() => setSearchOpen(true)} />}
-
-      {/* ROUTES */}
-      <Routes>
+    <Routes>
+      {/* PUBLIC */}
+      <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/essays" element={<div>Essays</div>} />
         <Route path="/culture" element={<div>Culture</div>} />
         <Route path="/science" element={<div>Science</div>} />
         <Route path="/archive" element={<div>Archive</div>} />
+      </Route>
 
-        <Route path="/signup" element={<SignupPage />} />
+      {/* AUTH */}
+      <Route element={<AuthLayout />}>
         <Route path="/signin" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+      </Route>
 
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      {/* DASHBOARD */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<DashboardHome />} />
 
-      {/* FOOTER */}
-      {!hideLayout && <Footer />}
+          <Route
+            path="/dashboard/settings"
+            // element={<SettingsPage />}
+          />
 
-      {/* SEARCH MODAL */}
-      {!hideLayout && (
-        <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-      )}
-    </div>
+          <Route
+            path="/dashboard/security"
+            // element={<SecurityPage />}
+          />
+
+          <Route
+            path="/dashboard/notifications"
+            // element={<NotificationsPage />}
+          />
+        </Route>
+      </Route>
+
+      {/* ADMIN ONLY */}
+      <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+        <Route
+          path="/dashboard/users"
+          // element={<UserManagementPage />}
+        />
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
-};
-
-export default App;
+}
