@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom"; // ← added useNavigate
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 
 import {
   FaBars,
@@ -12,11 +12,12 @@ import {
   FaHome,
   FaSearch,
   FaShieldAlt,
-  FaSignOutAlt, // ← new icon
+  FaSignOutAlt,
   FaTh,
   FaUser,
   FaUserShield,
   FaUsers,
+  FaFeatherAlt,
 } from "react-icons/fa";
 import { useAuth } from "@/lib/context/auth-context";
 import SearchModal from "@/components/ui/search-modal";
@@ -33,6 +34,12 @@ const navigation: NavItem[] = [
     label: "Dashboard",
     path: "/dashboard",
     icon: FaHome,
+  },
+  {
+    label: "Articles",
+    path: "/dashboard/roleApplication",
+    icon: FaFileAlt,
+    roles: ["admin", "writer", "user"],
   },
   {
     label: "Articles",
@@ -80,6 +87,7 @@ const hasAccess = (userRoles: string[], allowed?: string[]) => {
 const DashboardShell = () => {
   const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -90,9 +98,22 @@ const DashboardShell = () => {
   );
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/"); // redirect to home after logout
+    navigate("/", { replace: true });
+
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
+  const settingsPaths = [
+    "/dashboard/settings",
+    "/dashboard/security",
+    "/dashboard/notifications",
+  ];
+  const showSettingsTabs = settingsPaths.some((path) =>
+    location.pathname.startsWith(path),
+  );
 
   return (
     <>
@@ -106,10 +127,22 @@ const DashboardShell = () => {
             >
               <FaBars />
             </button>
-            <h1 className="font-serif text-xl">My Dashboard</h1>
+            <NavLink
+              to="/"
+              className="flex items-center gap-3 text-xl font-semibold text-on-surface justify-self-start"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-container text-on-primary">
+                <FaFeatherAlt className="h-4 w-4" />
+              </span>
+              <div className="flex flex-col leading-none">
+                <span className="font-serif">Editorial</span>
+                <span className="text-[10px] font-medium text-on-surface-variant">
+                  Journal
+                </span>
+              </div>
+            </NavLink>
           </div>
 
-          {/* SEARCH – button opens modal */}
           <div className="hidden md:block">
             <button
               onClick={() => setIsSearchOpen(true)}
@@ -147,17 +180,9 @@ const DashboardShell = () => {
           {/* SIDEBAR */}
           <aside
             className={`
-              fixed
-              md:flex
-              flex-col
-              left-0
-              top-16
-              h-[calc(100vh-64px)]
-              w-64
-              bg-surface-low
-              border-r
-              border-outline-variant
-              z-40
+              fixed md:flex flex-col
+              left-0 top-16 h-[calc(100vh-64px)]
+              w-64 bg-surface-low border-r border-outline-variant z-40
               transition-transform
               ${
                 mobileOpen
@@ -168,9 +193,12 @@ const DashboardShell = () => {
           >
             <div className="p-4">
               <h2 className="font-serif text-lg">Editorial</h2>
-              <p className="text-xs text-on-surface-variant">
-                Internal Workspace
-              </p>
+              {user?.roles.includes("admin") ||
+                (user?.roles.includes("writer") && (
+                  <p className="text-xs text-on-surface-variant">
+                    Internal Workspace
+                  </p>
+                ))}
             </div>
 
             <nav className="flex-1 px-3">
@@ -182,21 +210,11 @@ const DashboardShell = () => {
                     to={item.path}
                     end={item.path === "/dashboard"}
                     className={({ isActive }) =>
-                      `
-                      flex
-                      items-center
-                      gap-3
-                      px-4
-                      py-3
-                      rounded-lg
-                      mb-1
-                      transition-colors
-                      ${
+                      `flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors ${
                         isActive
                           ? "bg-primary-container text-on-primary"
                           : "text-on-surface-variant hover:bg-surface-container"
-                      }
-                    `
+                      }`
                     }
                   >
                     <Icon />
@@ -206,20 +224,30 @@ const DashboardShell = () => {
               })}
             </nav>
 
-            {/* BOTTOM SECTION – replaced Support with Logout */}
             <div className="border-t border-outline-variant p-3">
               <NavLink
                 to="/dashboard/settings"
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-surface-container"
+                className={({ isActive }) => {
+                  const isSettingsActive =
+                    isActive ||
+                    location.pathname.startsWith("/dashboard/security") ||
+                    location.pathname.startsWith("/dashboard/notifications");
+
+                  return `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors mb-1.5 ${
+                    isSettingsActive
+                      ? "bg-primary-container text-on-primary"
+                      : "text-on-surface-variant hover:bg-surface-container"
+                  }`;
+                }}
               >
                 <FaCog />
                 Settings
               </NavLink>
 
-              {/* Logout button – replaces Support */}
               <button
                 onClick={handleLogout}
-                className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-error hover:bg-surface-container transition-colors"
+                className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-error
+    transition-colors"
               >
                 <FaSignOutAlt />
                 <span>Logout</span>
@@ -227,7 +255,7 @@ const DashboardShell = () => {
             </div>
           </aside>
 
-          {/* CONTENT */}
+          {/* MAIN CONTENT */}
           <main className="flex-1 md:ml-64">
             <div className="max-w-5xl mx-auto px-4 md:px-10 py-12">
               {/* PROFILE HEADER */}
@@ -239,7 +267,13 @@ const DashboardShell = () => {
                       alt={profile.username}
                       className="w-full h-full object-cover"
                     />
-                  ) : null}
+                  ) : (
+                    <div className="grid place-items-center h-full bg-surface-container">
+                      <span className="text-2xl font-bold text-on-surface-variant">
+                        {profile?.username?.charAt(0) ?? user?.email?.charAt(0)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -262,50 +296,54 @@ const DashboardShell = () => {
                 </div>
               </section>
 
-              {/* SETTINGS TABS */}
-              <nav className="flex gap-8 border-b border-outline-variant mt-12">
-                <NavLink
-                  to="/dashboard/settings"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "pb-3 border-b-2 border-primary text-primary"
-                      : "pb-3 text-on-surface-variant"
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <FaUser />
-                    Profile
-                  </div>
-                </NavLink>
-                <NavLink
-                  to="/dashboard/security"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "pb-3 border-b-2 border-primary text-primary"
-                      : "pb-3 text-on-surface-variant"
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <FaShieldAlt />
-                    Security
-                  </div>
-                </NavLink>
-                <NavLink
-                  to="/dashboard/notifications"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "pb-3 border-b-2 border-primary text-primary"
-                      : "pb-3 text-on-surface-variant"
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <FaBell />
-                    Notifications
-                  </div>
-                </NavLink>
-              </nav>
+              {/* SETTINGS TABS – visible on all settings routes */}
+              {showSettingsTabs && (
+                <nav className="flex gap-8 border-b border-outline-variant mt-12">
+                  <NavLink
+                    to="/dashboard/settings"
+                    end
+                    className={({ isActive }) =>
+                      isActive
+                        ? "pb-3 border-b-2 border-primary text-primary"
+                        : "pb-3 text-on-surface-variant"
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <FaUser />
+                      Profile
+                    </div>
+                  </NavLink>
+                  <NavLink
+                    to="/dashboard/security"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "pb-3 border-b-2 border-primary text-primary"
+                        : "pb-3 text-on-surface-variant"
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <FaShieldAlt />
+                      Security
+                    </div>
+                  </NavLink>
+                  <NavLink
+                    to="/dashboard/notifications"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "pb-3 border-b-2 border-primary text-primary"
+                        : "pb-3 text-on-surface-variant"
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <FaBell />
+                      Notifications
+                    </div>
+                  </NavLink>
+                </nav>
+              )}
 
-              <div className="mt-10">
+              {/* PAGE CONTENT */}
+              <div className={showSettingsTabs ? "mt-10" : "mt-12"}>
                 <Outlet />
               </div>
             </div>
@@ -313,7 +351,6 @@ const DashboardShell = () => {
         </div>
       </div>
 
-      {/* SEARCH MODAL */}
       <SearchModal open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );

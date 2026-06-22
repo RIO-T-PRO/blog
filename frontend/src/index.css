@@ -25,6 +25,12 @@
   --secondary-container: #e4dfd6;
 
   --font-sans: "Inter", sans-serif;
+
+  /* Error palette */
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error: #ffffff;
+  --on-error-container: #93000a;
 }
 
 @theme {
@@ -51,6 +57,11 @@
 
   --color-secondary: var(--secondary);
   --color-secondary-container: var(--secondary-container);
+
+  --color-error: var(--error);
+  --color-error-container: var(--error-container);
+  --color-on-error: var(--on-error);
+  --color-on-error-container: var(--on-error-container);
 }
 
 @layer base {
@@ -64,5 +75,9 @@
 
   ::selection {
     @apply bg-primary-container text-on-primary-container;
+  }
+
+  button {
+    cursor: pointer;
   }
 }

@@ -9,6 +9,9 @@ import AuthLayout from "./components/layout/auth";
 import ProtectedRoute from "./components/protected-routes";
 import DashboardLayout from "./components/layout/dashboard";
 import DashboardHome from "./components/dashboard";
+import ProfileSettings from "./components/settings/profile";
+import SecuritySettings from "./components/settings/security";
+import NotificationSettings from "./components/settings/notification";
 
 export default function App() {
   return (
@@ -28,24 +31,15 @@ export default function App() {
         <Route path="/signup" element={<SignupPage />} />
       </Route>
 
-      {/* DASHBOARD */}
+      {/* DASHBOARD (protected) */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardHome />} />
-
-          <Route
-            path="/dashboard/settings"
-            // element={<SettingsPage />}
-          />
-
-          <Route
-            path="/dashboard/security"
-            // element={<SecurityPage />}
-          />
-
+          <Route path="/dashboard/settings" element={<ProfileSettings />} />
+          <Route path="/dashboard/security" element={<SecuritySettings />} />
           <Route
             path="/dashboard/notifications"
-            // element={<NotificationsPage />}
+            element={<NotificationSettings />}
           />
         </Route>
       </Route>
