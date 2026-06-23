@@ -5,12 +5,15 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 import { AuthProvider } from "./lib/context/auth-context";
+import { RoleApplicationProvider } from "./lib/context/role-application";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <RoleApplicationProvider>
+          <App />
+        </RoleApplicationProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

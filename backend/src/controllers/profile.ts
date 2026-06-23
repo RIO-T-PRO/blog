@@ -1,4 +1,4 @@
-import { findUserWithRole } from "@/database/services/user.js";
+import { findUserWithRoleAndProfile } from "@/database/services/user.js";
 import {
   getUserProfile,
   updateUserProfile,
@@ -13,17 +13,18 @@ export const getProfileService = async (req: Request, res: Response) => {
 
     if (!userId) return resError(res, "Unauthorized", 400);
 
-    const [profile, userWithRoles] = await Promise.all([
-      getUserProfile(userId),
-      findUserWithRole(userId),
-    ]);
+    const userWithRoleAndProfile = await findUserWithRoleAndProfile(userId);
 
-    if (!profile) return null;
+    if (!userWithRoleAndProfile) return null;
 
-    return {
-      ...profile,
-      userRoles: userWithRoles?.roles ?? [],
-    };
+    return resSuccess(
+      res,
+      {
+        user: userWithRoleAndProfile?.user,
+        profile: userWithRoleAndProfile?.profile,
+      },
+      "Profile updated",
+    );
   } catch (error) {
     console.error("Profile error", error);
     resError(res, "Internal server error", 500);
@@ -47,7 +48,11 @@ export const updateProfileController = async (req: Request, res: Response) => {
       website,
     });
 
-    return resSuccess(res, { profile }, "Profile updated");
+    return resSuccess(
+      res,
+      { data: { profile, role: req.user.roles } },
+      "Profile updated",
+    );
   } catch (error) {
     console.error("Update profile error", error);
     return resError(res, "Could not update profile", 500);

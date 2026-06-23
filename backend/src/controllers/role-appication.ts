@@ -20,28 +20,32 @@ export const createRoleApplicationController = async (
   res: Response,
 ) => {
   try {
-    const { userId, roleId, message } = req.body as CreateRoleApplication;
-
-    if (!roleId) {
-      return resError(res, "Role is required", 400);
+    const userId = req.user?.id;
+    if (!userId) {
+      return resError(res, "Unauthorized", 401);
     }
 
-    const role = await prisma.role.findUnique({
-      where: { id: roleId },
-    });
+    const { roleName, message } = req.body as CreateRoleApplication;
 
+    if (!roleName) {
+      return resError(res, "Role name is required", 400);
+    }
+
+    // Ensure the role exists (so we have a valid foreign key)
+    let role = await prisma.role.findUnique({ where: { name: roleName } });
     if (!role) {
-      return resError(res, "Role not found", 404);
+      role = await prisma.role.create({
+        data: {
+          name: roleName,
+          description: `Auto-created role: ${roleName}`,
+        },
+      });
     }
 
+    // Prevent duplicate pending applications for the same role
     const existing = await prisma.roleApplication.findFirst({
-      where: {
-        userId,
-        roleId,
-        status: "PENDING",
-      },
+      where: { userId, roleId: role.id, status: "PENDING" },
     });
-
     if (existing) {
       return resError(
         res,
@@ -50,15 +54,16 @@ export const createRoleApplicationController = async (
       );
     }
 
+    // Create the application (no role assignment to user)
     const application = await createRoleApplication({
       userId,
-      roleId,
+      roleId: role.id,
       message,
     });
 
     return resSuccess(
       res,
-      { data: application },
+      { application },
       "Application submitted successfully",
       201,
     );
@@ -82,7 +87,7 @@ export const getMyApplicationsController = async (
 
     return resSuccess(
       res,
-      { data: applications },
+      { applications },
       "Applications fetched successfully",
     );
   } catch (error) {
@@ -105,7 +110,7 @@ export const getApplicationsController = async (
 
     return resSuccess(
       res,
-      { data: applications },
+      { applications },
       "Applications fetched successfully",
     );
   } catch (error) {
@@ -130,11 +135,7 @@ export const getApplicationController = async (req: Request, res: Response) => {
       return resError(res, "Forbidden", 403);
     }
 
-    return resSuccess(
-      res,
-      { data: application },
-      "Application fetched successfully",
-    );
+    return resSuccess(res, { application }, "Application fetched successfully");
   } catch (error) {
     console.error("Get application error", error);
     return resError(res, "Internal server error", 500);
@@ -146,27 +147,41 @@ export const reviewApplicationController = async (
   res: Response,
 ) => {
   try {
-    const user = req.user;
-
-    const isAdmin = user?.roles?.includes("admin");
+    const adminUser = req.user;
+    const isAdmin = adminUser?.roles?.includes("admin");
     if (!isAdmin) {
       return resError(res, "Forbidden", 403);
     }
 
     const { userId } = req.params as UserIdParam;
-    const { status, message } = req.body as ReviewRoleApplicationBody;
+    const { status, message: reviewMessage } =
+      req.body as ReviewRoleApplicationBody;
 
     if (!["APPROVED", "REJECTED", "CANCELLED"].includes(status)) {
-      return resError(res, message, 400);
+      return resError(res, "Invalid status", 400);
     }
 
-    const updated = await reviewRoleApplication(userId, user.id, status);
+    // Find the latest pending application for the user (could be multiple, but admin reviews one at a time)
+    const application = await prisma.roleApplication.findFirst({
+      where: { userId, status: "PENDING" },
+    });
 
-    return resSuccess(
-      res,
-      { data: updated },
-      "Application reviewed successfully",
-    );
+    if (!application) {
+      return resError(res, "No pending application found for this user", 404);
+    }
+
+    // Update the application only – no role assignment
+    const updated = await prisma.roleApplication.update({
+      where: { id: application.id },
+      data: {
+        status,
+        reviewedById: adminUser.id,
+        reviewedAt: new Date(),
+        // reviewMessage: reviewMessage || null,   // uncomment if column exists
+      },
+    });
+
+    return resSuccess(res, { updated }, "Application reviewed successfully");
   } catch (error) {
     console.error("Review application error", error);
     return resError(res, "Internal server error", 500);

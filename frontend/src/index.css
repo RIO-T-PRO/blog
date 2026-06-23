@@ -1,210 +1,83 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
-/* ===== Global CSS variables: only what this page uses ===== */
 :root {
-  --color-primary: #84532b;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #c68b5e;
+  --background: #faf9f6;
+  --surface: #faf9f6;
+  --surface-lowest: #ffffff;
+  --surface-low: #f4f3f1;
+  --surface-container: #efeeeb;
+  --surface-high: #e9e8e5;
+  --surface-highest: #e3e2e0;
 
-  --color-surface: #ffffff;
-  --color-on-surface: #201b17;
-  --color-background: #f6f4f0;
+  --primary: #4d228e;
+  --primary-container: #7e57c2;
+  --on-primary: #ffffff;
+  --on-primary-container: #d7beff;
 
-  --color-surface-container: #f7ece6;
-  --color-surface-dim: #e3d8d2;
-  --color-surface-variant: #ece0da;
+  --on-surface: #1a1c1a;
+  --on-surface-variant: #4a4452;
 
-  --color-on-surface-variant: #51443b;
-  --color-outline-variant: #d6c3b7;
-  --color-border-muted: #e0dcd5;
+  --outline: #7b7483;
+  --outline-variant: #ccc3d3;
 
-  --color-text-secondary: #5a676b;
-  --color-accent-teal: #6c8b8b;
+  --secondary: #615e57;
+  --secondary-container: #e4dfd6;
 
-  --color-inverse-surface: #352f2b;
-  --color-inverse-on-surface: #faeee8;
+  --font-sans: "Inter", sans-serif;
 
-  --font-family-display: "Playfair Display", serif;
-  --font-family-body: "Vollkorn", serif;
-  --font-family-ui: "Inter", sans-serif;
-
-  --color-danger: #b04a3a;
-  --color-danger-container: #f5dfd8;
+  /* Error palette */
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error: #ffffff;
+  --on-error-container: #93000a;
 }
 
-/* ===== Tailwind v4 theme ===== */
 @theme {
-  --color-primary: var(--color-primary);
-  --color-on-primary: var(--color-on-primary);
-  --color-primary-container: var(--color-primary-container);
+  --font-sans: var(--font-sans);
 
-  --color-surface: var(--color-surface);
-  --color-on-surface: var(--color-on-surface);
-  --color-background: var(--color-background);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-lowest: var(--surface-lowest);
+  --color-surface-low: var(--surface-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-high: var(--surface-high);
+  --color-surface-highest: var(--surface-highest);
 
-  --color-surface-container: var(--color-surface-container);
-  --color-surface-dim: var(--color-surface-dim);
-  --color-surface-variant: var(--color-surface-variant);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary: var(--on-primary);
+  --color-on-primary-container: var(--on-primary-container);
 
-  --color-on-surface-variant: var(--color-on-surface-variant);
-  --color-outline-variant: var(--color-outline-variant);
-  --color-border-muted: var(--color-border-muted);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
 
-  --color-text-secondary: var(--color-text-secondary);
-  --color-accent-teal: var(--color-accent-teal);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
 
-  --color-inverse-surface: var(--color-inverse-surface);
-  --color-inverse-on-surface: var(--color-inverse-on-surface);
+  --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
 
-  --font-display: var(--font-family-display);
-  --font-body: var(--font-family-body);
-  --font-ui: var(--font-family-ui);
-
-  --color-danger: var(--color-danger);
-  --color-danger-container: var(--color-danger-container);
-}
-@import "tailwindcss";
-
-/* ===== Global CSS variables: only what this page uses ===== */
-:root {
-  --color-primary: #84532b;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #c68b5e;
-
-  --color-surface: #ffffff;
-  --color-on-surface: #201b17;
-  --color-background: #f6f4f0;
-
-  --color-surface-container: #f7ece6;
-  --color-surface-dim: #e3d8d2;
-  --color-surface-variant: #ece0da;
-
-  --color-on-surface-variant: #51443b;
-  --color-outline-variant: #d6c3b7;
-  --color-border-muted: #e0dcd5;
-
-  --color-text-secondary: #5a676b;
-  --color-accent-teal: #6c8b8b;
-
-  --color-inverse-surface: #352f2b;
-  --color-inverse-on-surface: #faeee8;
-
-  --font-family-display: "Playfair Display", serif;
-  --font-family-body: "Vollkorn", serif;
-  --font-family-ui: "Inter", sans-serif;
-
-  --color-danger: #b04a3a;
-  --color-danger-container: #f5dfd8;
+  --color-error: var(--error);
+  --color-error-container: var(--error-container);
+  --color-on-error: var(--on-error);
+  --color-on-error-container: var(--on-error-container);
 }
 
-/* ===== Tailwind v4 theme ===== */
-@theme {
-  --color-primary: var(--color-primary);
-  --color-on-primary: var(--color-on-primary);
-  --color-primary-container: var(--color-primary-container);
-
-  --color-surface: var(--color-surface);
-  --color-on-surface: var(--color-on-surface);
-  --color-background: var(--color-background);
-
-  --color-surface-container: var(--color-surface-container);
-  --color-surface-dim: var(--color-surface-dim);
-  --color-surface-variant: var(--color-surface-variant);
-
-  --color-on-surface-variant: var(--color-on-surface-variant);
-  --color-outline-variant: var(--color-outline-variant);
-  --color-border-muted: var(--color-border-muted);
-
-  --color-text-secondary: var(--color-text-secondary);
-  --color-accent-teal: var(--color-accent-teal);
-
-  --color-inverse-surface: var(--color-inverse-surface);
-  --color-inverse-on-surface: var(--color-inverse-on-surface);
-
-  --font-display: var(--font-family-display);
-  --font-body: var(--font-family-body);
-  --font-ui: var(--font-family-ui);
-
-  --color-danger: var(--color-danger);
-  --color-danger-container: var(--color-danger-container);
-}
-
-/* ===== Custom utilities ===== */
-@utility ambient-shadow {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-}
-
-@utility ambient-shadow-hover {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  transition:
-    box-shadow 0.3s,
-    transform 0.3s;
-
-  &:hover {
-    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-  }
-}
-
-@utility hide-scrollbar {
-  &::-webkit-scrollbar {
-    display: none;
+@layer base {
+  html {
+    scroll-behavior: smooth;
   }
 
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Body defaults */
-body {
-  background-color: var(--color-background);
-  color: var(--color-on-surface);
-  font-family: var(--font-family-body);
-}
-
-/* ===== Custom utilities ===== */
-@utility ambient-shadow {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-}
-
-@utility ambient-shadow-hover {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  transition:
-    box-shadow 0.3s,
-    transform 0.3s;
-
-  &:hover {
-    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-  }
-}
-
-@utility hide-scrollbar {
-  &::-webkit-scrollbar {
-    display: none;
+  body {
+    @apply bg-background text-on-surface font-sans antialiased;
   }
 
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+  ::selection {
+    @apply bg-primary-container text-on-primary-container;
+  }
 
-/* Body defaults */
-body {
-  background-color: var(--color-background);
-  color: var(--color-on-surface);
-  font-family: var(--font-family-body);
-}
-
-/* hidden scrollbar utility */
-.scrollbar-hidden {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hidden::-webkit-scrollbar {
-  display: none;
-}
-
-button {
-  cursor: pointer;
+  button {
+    cursor: pointer;
+  }
 }

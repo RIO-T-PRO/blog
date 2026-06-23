@@ -10,6 +10,7 @@ export {
   verifyToken,
   hashToken,
   getExpiresDate,
+  extractRoleNames,
 } from "@/utils/token.js";
 
 // Password Utilities

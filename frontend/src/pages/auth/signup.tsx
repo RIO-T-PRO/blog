@@ -3,9 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaFeatherAlt } from "react-icons/fa";
 import { FaArrowLeftLong, FaEye, FaEyeSlash } from "react-icons/fa6";
 
-import Container from "@/components/ui/container";
 import PasswordStrength from "@/lib/password-strength";
 import { useAuth } from "@/lib/context/auth-context";
+import { Container } from "@/components/layout/container";
 
 type Status = "idle" | "submitting" | "success";
 
@@ -44,17 +44,13 @@ const SignupPage = () => {
 
     try {
       await signup({
-        fullName: form.name,
+        name: form.name,
         email: form.email,
         password: form.password,
       });
-
-      setTimeout(() => {
-        if (!user) {
-          setStatus("idle");
-          setError("Failed to create account. Please try again.");
-        }
-      }, 2000);
+      setStatus("success");
+      // ✅ Redirect after a short delay so the user sees "Success!"
+      setTimeout(() => navigate("/"), 1200);
     } catch (err) {
       console.error(err);
       setStatus("idle");

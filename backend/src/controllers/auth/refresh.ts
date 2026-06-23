@@ -1,9 +1,9 @@
 import {
   deleteRefreshToken,
   findRefreshToken,
-  upsertRefreshToken,
+  updateRefreshToken,
 } from "@/database/services/token.js";
-import { findUserWithRole } from "@/database/services/user.js";
+import { findUserWithRoleAndProfile } from "@/database/services/user.js";
 import { TokenPayload } from "@/types/token.js";
 import {
   generateToken,
@@ -40,25 +40,31 @@ export const refreshToken = async (req: Request, res: Response) => {
       return resError(res, "Refresh token expired", 403);
     }
 
-    const userWithRoles = await findUserWithRole(payload.id);
-    if (!userWithRoles) {
+    const userWithRoleAndProfile = await findUserWithRoleAndProfile(payload.id);
+    if (!userWithRoleAndProfile) {
       return resError(res, "User not found", 404);
     }
 
+    // Generate new tokens
     const newAccessToken = generateToken(
       "access",
-      userWithRoles.id,
-      userWithRoles.roles,
+      userWithRoleAndProfile.user.id,
+      userWithRoleAndProfile.user.roles,
     );
-    const newRefreshToken = generateToken("refresh", userWithRoles.id);
+    const newRefreshToken = generateToken(
+      "refresh",
+      userWithRoleAndProfile.user.id,
+    );
     const expiresAt = getExpiresDate("refresh");
     const hashedNewRefreshToken = hashToken(newRefreshToken);
 
-    await upsertRefreshToken(
-      userWithRoles.id,
+    // **CRITICAL FIX**: update the token record using its `id` (primary key)
+    await updateRefreshToken(
+      storedToken.id, // use the stored token's id
       hashedNewRefreshToken,
       expiresAt,
     );
+
     setRefreshTokenCookie(res, newRefreshToken);
 
     return resSuccess(

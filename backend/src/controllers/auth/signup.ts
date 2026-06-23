@@ -2,9 +2,12 @@ import { upsertRefreshToken } from "@/database/services/token.js";
 import {
   createUser,
   findUserByEmail,
-  findUserWithRole,
+  findUserWithRoleAndProfile,
 } from "@/database/services/user.js";
-import { upsertUserProfile } from "@/database/services/profile.js";
+import {
+  getUserProfile,
+  upsertUserProfile,
+} from "@/database/services/profile.js";
 import { SignupInput } from "@/schemas/user.js";
 import {
   generateToken,
@@ -43,8 +46,8 @@ export const signup = async (req: Request, res: Response) => {
       username: `${name.toLowerCase().replace(/\s+/g, "")}-${user.id.slice(0, 6)}`,
     });
 
-    const userWithRoles = await findUserWithRole(user.id);
-    const roles = userWithRoles?.roles ?? [];
+    const userWith = await findUserWithRoleAndProfile(user.id);
+    const roles = userWith?.user.roles ?? [];
 
     const accessToken = generateToken("access", user.id, roles);
     const refreshToken = generateToken("refresh", user.id);
@@ -56,7 +59,11 @@ export const signup = async (req: Request, res: Response) => {
 
     return resSuccess(
       res,
-      { data: { user: { id: user.id } }, accessToken },
+      {
+        user: userWith?.user,
+        profile: userWith?.profile,
+        accessToken,
+      },
       "User created successfully",
       201,
     );

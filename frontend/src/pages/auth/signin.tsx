@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaFeatherAlt } from "react-icons/fa";
 import { FaArrowLeftLong, FaEye, FaEyeSlash } from "react-icons/fa6";
 
-import Container from "@/components/ui/container";
 import { useAuth } from "@/lib/context/auth-context";
+import { Container } from "@/components/layout/container";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,13 +42,8 @@ const LoginPage = () => {
 
     try {
       await signin({ email: form.email, password: form.password });
-      // Success will set user, navigation via useEffect
-      setTimeout(() => {
-        if (!user) {
-          setStatus("idle");
-          setError("Invalid email or password. Please try again.");
-        }
-      }, 2000);
+      // ✅ Redirect immediately after success
+      navigate("/");
     } catch (err) {
       console.error(err);
       setStatus("idle");

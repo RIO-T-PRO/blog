@@ -12,6 +12,6 @@ const router = express.Router();
 router.post("/signup", validate(SignupSchema, "body"), signup);
 router.post("/signin", validate(SigninSchema, "body"), signin);
 router.post("/logout", signout);
-router.post("/refresh", authenticate, refreshToken);
+router.post("/refresh", refreshToken);
 
 export default router;

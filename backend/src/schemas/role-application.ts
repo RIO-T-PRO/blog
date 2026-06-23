@@ -9,8 +9,7 @@ export const RoleApplicationStatusSchema = z.enum([
 ]);
 
 export const CreateRoleApplicationSchema = z.object({
-  userId: z.string(),
-  roleId: z.string(),
+  roleName: z.string(),
   message: z.string().optional(),
 });
 

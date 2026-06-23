@@ -6,61 +6,80 @@ import LoginPage from "@/pages/auth/signin";
 import SignupPage from "@/pages/auth/signup";
 import NotFoundPage from "@/pages/not-found";
 
-import Navbar from "@/components/navbar";
+import Navbar from "@/components/nav-bar";
 import Footer from "@/components/footer";
-import SearchModal from "@/components/home/search-modal";
+import SearchModal from "@/components/ui/search-modal";
 
-import DashboardLayout from "@/dashboard-layout";
+import AuthLayout from "./components/layout/auth";
+import ProtectedRoute from "./components/protected-routes";
+import DashboardLayout from "./components/layout/dashboard";
+import DashboardHome from "./components/dashboard";
+import ProfileSettings from "./components/settings/profile";
+import SecuritySettings from "./components/settings/security";
+import NotificationSettings from "./components/settings/notification";
+import ApplyWriterForm from "./components/user/apply-writer";
 
 const App = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
 
-  const authRoutes = ["/signin", "/signup"];
-
-  const knownRoutes = [
-    "/",
-    "/essays",
-    "/culture",
-    "/science",
-    "/archive",
-    "/signup",
-    "/signin",
-    "/dashboard",
-    "/dashboard/settings",
-    "/dashboard/write",
-    "/dashboard/writer/posts",
-  ];
-
-  const isAuthPage = authRoutes.includes(location.pathname);
-  const isNotFoundPage = !knownRoutes.includes(location.pathname);
-
-  const isDashboard = location.pathname.startsWith("/dashboard");
-  const hideLayout = isAuthPage || isNotFoundPage || isDashboard;
+  // Paths where we hide the global Navbar + Footer
+  const authPaths = ["/signin", "/signup"];
+  const hideLayout =
+    authPaths.includes(location.pathname) ||
+    location.pathname.startsWith("/dashboard") ||
+    location.pathname === "*";
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
       {!hideLayout && <Navbar onSearchOpen={() => setSearchOpen(true)} />}
 
       <Routes>
         {/* PUBLIC */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/essays" element={<div>Essays</div>} />
-        <Route path="/culture" element={<div>Culture</div>} />
-        <Route path="/science" element={<div>Science</div>} />
-        <Route path="/archive" element={<div>Archive</div>} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/signin" element={<LoginPage />} />
+        <Route>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/essays" element={<div>Essays</div>} />
+          <Route path="/culture" element={<div>Culture</div>} />
+          <Route path="/science" element={<div>Science</div>} />
+          <Route path="/archive" element={<div>Archive</div>} />
+        </Route>
 
-        <Route path="/dashboard" element={<DashboardLayout />} />
+        {/* AUTH */}
+        <Route element={<AuthLayout />}>
+          <Route path="/signin" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+        </Route>
+
+        {/* DASHBOARD (protected) */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<DashboardHome />} />
+            <Route
+              path="/dashboard/user/apply/writer"
+              element={<ApplyWriterForm />}
+            />
+            <Route path="/dashboard/settings" element={<ProfileSettings />} />
+            <Route path="/dashboard/security" element={<SecuritySettings />} />
+            <Route
+              path="/dashboard/notifications"
+              element={<NotificationSettings />}
+            />
+          </Route>
+        </Route>
+
+        {/* ADMIN ONLY */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route path="/dashboard/users" />
+        </Route>
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
       {!hideLayout && <Footer />}
 
+      {/* Global Search Modal – can be opened from anywhere */}
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-    </div>
+    </>
   );
 };
 

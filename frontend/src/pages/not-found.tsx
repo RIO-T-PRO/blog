@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { FaArrowLeftLong, FaCompass } from "react-icons/fa6";
 
-import Container from "@/components/ui/container";
 import { FaFeatherAlt } from "react-icons/fa";
+import { Container } from "@/components/layout/container";
 
 const NotFoundPage = () => {
   return (
@@ -17,7 +17,7 @@ const NotFoundPage = () => {
 
             <div className="flex flex-col text-left">
               <span className="font-display text-3xl tracking-tight text-on-surface">
-                Chronicle
+                Editorial
               </span>
 
               <span className="font-ui text-[10px] uppercase tracking-[0.25em] text-text-secondary">
