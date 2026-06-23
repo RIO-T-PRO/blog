@@ -29,16 +29,17 @@ const navigation = [
     icon: FaFileAlt,
     roles: ["admin", "writer"],
     children: [
-      { label: "Draft", path: "/dashboard/articles/draft" },
+      { label: "Create Article", path: "/dashboard/articles/new" },
+      { label: "Drafts", path: "/dashboard/articles/draft" },
+      { label: "Published", path: "/dashboard/articles/published" },
       { label: "Archive", path: "/dashboard/articles/archive" },
-      { label: "Publish", path: "/dashboard/articles/publish" },
     ],
   },
   {
     label: "Articles",
     icon: FaFileAlt,
     roles: ["user"],
-    path: "/dashboard/articles/publish",
+    path: "/dashboard/articles/published",
   },
   {
     label: "Comments",
@@ -79,7 +80,7 @@ const hasAccess = (userRoles: string[], allowed?: string[]) => {
 
 const DashboardAside = ({
   mobileOpen,
-  //   setMobileOpen,
+  setMobileOpen,
   locationPath,
   user,
   handleLogout,
@@ -120,7 +121,7 @@ const DashboardAside = ({
               <div key={item.label} className="mb-1">
                 <button
                   type="button"
-                  onClick={() => setArticlesOpen((v) => !v)}
+                  onClick={() => setArticlesOpen((v: boolean) => !v)}
                   className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActiveGroup
                       ? "bg-primary-container text-on-primary"
@@ -142,6 +143,7 @@ const DashboardAside = ({
                       <NavLink
                         key={child.path}
                         to={child.path}
+                        onClick={() => setMobileOpen(false)}
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
                             isActive
@@ -164,6 +166,7 @@ const DashboardAside = ({
               key={item.path}
               to={item.path!}
               end={item.path === "/dashboard"}
+              onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors ${
                   isActive
@@ -182,6 +185,7 @@ const DashboardAside = ({
       <div className="border-t border-outline-variant p-3">
         <NavLink
           to="/dashboard/settings"
+          onClick={() => setMobileOpen(false)}
           className={({ isActive }) =>
             `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors mb-1.5 ${
               isActive

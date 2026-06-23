@@ -1,6 +1,15 @@
 import { NavLink } from "react-router-dom";
 import { FaBars, FaBell, FaFeatherAlt, FaSearch, FaTh } from "react-icons/fa";
 
+type NotificationItem = {
+  id: string | number;
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  time: string;
+  color: string;
+};
+
 type Props = {
   mobileOpen: boolean;
   setMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -9,7 +18,7 @@ type Props = {
   notificationRef: React.RefObject<HTMLDivElement | null>;
   handleBellClick: () => void;
   hasNotifications: boolean;
-  realNotifications: any[];
+  realNotifications: NotificationItem[];
   profile: any;
   user: any;
 };
@@ -75,10 +84,11 @@ const DashboardNavBar = ({
           </button>
 
           {notificationOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-surface border border-outline-variant rounded-xl shadow-lg z-50 overflow-hidden">
+            <div className="absolute right-0 top-full mt-2 w-80 bg-surface border border-outline-variant rounded-xl shadow-lg z-50 overflow-hidden">
               <div className="p-4 border-b border-outline-variant">
                 <h3 className="font-semibold text-on-surface">Notifications</h3>
               </div>
+
               <div className="max-h-64 overflow-y-auto">
                 {realNotifications.length === 0 ? (
                   <p className="p-4 text-sm text-on-surface-variant text-center">
@@ -87,6 +97,7 @@ const DashboardNavBar = ({
                 ) : (
                   realNotifications.map((notif) => {
                     const Icon = notif.icon;
+
                     return (
                       <div
                         key={notif.id}
@@ -97,6 +108,7 @@ const DashboardNavBar = ({
                         >
                           <Icon className="text-sm" />
                         </div>
+
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-on-surface truncate">
                             {notif.title}
@@ -113,6 +125,7 @@ const DashboardNavBar = ({
                   })
                 )}
               </div>
+
               <a
                 href="/dashboard/notifications"
                 className="block text-center py-3 text-sm text-primary font-medium hover:bg-surface-container-low transition-colors border-t border-outline-variant"

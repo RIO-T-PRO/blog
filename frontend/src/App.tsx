@@ -19,24 +19,9 @@ import SecuritySettings from "./components/settings/security";
 import NotificationSettings from "./components/settings/notification";
 import ApplyWriterForm from "./components/user/apply-writer";
 import WriterEditor from "./components/article/writer-editor";
-
-const DraftArticlesPage = () => (
-  <div className="rounded-xl border border-outline-variant bg-surface p-6">
-    Draft articles
-  </div>
-);
-
-const ArchiveArticlesPage = () => (
-  <div className="rounded-xl border border-outline-variant bg-surface p-6">
-    Archived articles
-  </div>
-);
-
-const PublishArticlesPage = () => (
-  <div className="rounded-xl border border-outline-variant bg-surface p-6">
-    Archived articles
-  </div>
-);
+import DraftArticlesPage from "./components/article/draf";
+import ArchiveArticlesPage from "./components/article/archive";
+import PublishedArticlesPage from "./components/article/published";
 
 const App = () => {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -82,32 +67,40 @@ const App = () => {
               element={<NotificationSettings />}
             />
 
+            {/* Writer/Admin only article routes – wrapped in ArticleProvider */}
             <Route
               element={<ProtectedRoute allowedRoles={["admin", "writer"]} />}
             >
               <Route
-                path="/dashboard/articles"
-                element={<Navigate to="/dashboard/articles/draft" replace />}
-              />
-              <Route
-                path="/dashboard/articles/draft"
-                element={<DraftArticlesPage />}
-              />
-              <Route
-                path="/dashboard/articles/archive"
-                element={<ArchiveArticlesPage />}
-              />
-              <Route
-                path="/dashboard/articles/editor"
-                element={<WriterEditor />}
-              />
+                element={<ProtectedRoute allowedRoles={["admin", "writer"]} />}
+              >
+                <Route
+                  path="/dashboard/articles"
+                  element={<Navigate to="draft" replace />}
+                />
+                <Route
+                  path="/dashboard/articles/draft"
+                  element={<DraftArticlesPage />}
+                />
+                <Route
+                  path="/dashboard/articles/archive"
+                  element={<ArchiveArticlesPage />}
+                />
+                <Route
+                  path="/dashboard/articles/published"
+                  element={<PublishedArticlesPage />}
+                />
+                <Route
+                  path="/dashboard/articles/new"
+                  element={<WriterEditor />}
+                />
+                <Route
+                  path="/dashboard/articles/:articleId/edit"
+                  element={<WriterEditor />}
+                />
+              </Route>
             </Route>
           </Route>
-
-          <Route
-            path="/dashboard/articles/publish"
-            element={<PublishArticlesPage />}
-          />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>

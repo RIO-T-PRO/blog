@@ -85,7 +85,7 @@ export const getArticleController = async (req: Request, res: Response) => {
       return resError(res, "Article not found", 404);
     }
 
-    return resSuccess(res, { data: article }, "Article fetched successfully");
+    return resSuccess(res, { article }, "Article fetched successfully");
   } catch (error) {
     console.error("Get article error", error);
     return resError(res, "Internal server error", 500);
@@ -121,7 +121,7 @@ export const updateArticleController = async (req: Request, res: Response) => {
       slug: body.slug,
     });
 
-    return resSuccess(res, { data: updated }, "Article updated successfully");
+    return resSuccess(res, { updated }, "Article updated successfully");
   } catch (error) {
     console.error("Update article error", error);
     return resError(res, "Internal server error", 500);
