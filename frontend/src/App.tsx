@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 
 import HomePage from "@/pages/home";
@@ -18,12 +18,30 @@ import ProfileSettings from "./components/settings/profile";
 import SecuritySettings from "./components/settings/security";
 import NotificationSettings from "./components/settings/notification";
 import ApplyWriterForm from "./components/user/apply-writer";
+import WriterEditor from "./components/article/writer-editor";
+
+const DraftArticlesPage = () => (
+  <div className="rounded-xl border border-outline-variant bg-surface p-6">
+    Draft articles
+  </div>
+);
+
+const ArchiveArticlesPage = () => (
+  <div className="rounded-xl border border-outline-variant bg-surface p-6">
+    Archived articles
+  </div>
+);
+
+const PublishArticlesPage = () => (
+  <div className="rounded-xl border border-outline-variant bg-surface p-6">
+    Archived articles
+  </div>
+);
 
 const App = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
 
-  // Paths where we hide the global Navbar + Footer
   const authPaths = ["/signin", "/signup"];
   const hideLayout =
     authPaths.includes(location.pathname) ||
@@ -35,23 +53,22 @@ const App = () => {
       {!hideLayout && <Navbar onSearchOpen={() => setSearchOpen(true)} />}
 
       <Routes>
-        {/* PUBLIC */}
-        <Route>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/essays" element={<div>Essays</div>} />
-          <Route path="/culture" element={<div>Culture</div>} />
-          <Route path="/science" element={<div>Science</div>} />
-          <Route path="/archive" element={<div>Archive</div>} />
-        </Route>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/essays" element={<div>Essays</div>} />
+        <Route path="/culture" element={<div>Culture</div>} />
+        <Route path="/science" element={<div>Science</div>} />
+        <Route path="/archive" element={<div>Archive</div>} />
 
-        {/* AUTH */}
         <Route element={<AuthLayout />}>
           <Route path="/signin" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
         </Route>
 
-        {/* DASHBOARD (protected) */}
-        <Route element={<ProtectedRoute />}>
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={["admin", "user", "writer"]} />
+          }
+        >
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardHome />} />
             <Route
@@ -64,20 +81,43 @@ const App = () => {
               path="/dashboard/notifications"
               element={<NotificationSettings />}
             />
+
+            <Route
+              element={<ProtectedRoute allowedRoles={["admin", "writer"]} />}
+            >
+              <Route
+                path="/dashboard/articles"
+                element={<Navigate to="/dashboard/articles/draft" replace />}
+              />
+              <Route
+                path="/dashboard/articles/draft"
+                element={<DraftArticlesPage />}
+              />
+              <Route
+                path="/dashboard/articles/archive"
+                element={<ArchiveArticlesPage />}
+              />
+              <Route
+                path="/dashboard/articles/editor"
+                element={<WriterEditor />}
+              />
+            </Route>
           </Route>
+
+          <Route
+            path="/dashboard/articles/publish"
+            element={<PublishArticlesPage />}
+          />
         </Route>
 
-        {/* ADMIN ONLY */}
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-          <Route path="/dashboard/users" />
+          <Route path="/dashboard/users" element={<div>Users</div>} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
       {!hideLayout && <Footer />}
-
-      {/* Global Search Modal – can be opened from anywhere */}
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );

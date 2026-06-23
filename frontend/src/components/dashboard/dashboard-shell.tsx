@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 
 import {
@@ -6,32 +6,34 @@ import {
   FaBell,
   FaBookmark,
   FaChartBar,
-  FaCommentDots,
+  FaChevronDown,
   FaCog,
+  FaClock,
+  FaCommentDots,
+  FaFeatherAlt,
   FaFileAlt,
   FaHome,
   FaSearch,
   FaShieldAlt,
   FaSignOutAlt,
   FaTh,
+  FaTimesCircle,
   FaUser,
   FaUserShield,
   FaUsers,
-  FaFeatherAlt,
-  FaClock,
   FaCheckCircle,
-  FaTimesCircle,
 } from "react-icons/fa";
+
 import { useAuth } from "@/lib/context/auth-context";
 import { useRoleApplication } from "@/lib/context/role-application";
 import SearchModal from "@/components/ui/search-modal";
 
 type NavItem = {
   label: string;
-  path: string;
+  path?: string;
   icon: React.ElementType;
   roles?: string[];
-  show?: (userRoles: string[]) => boolean;
+  children?: { label: string; path: string }[];
 };
 
 const navigation: NavItem[] = [
@@ -41,16 +43,20 @@ const navigation: NavItem[] = [
     icon: FaHome,
   },
   {
-    label: "Apply for Writer",
-    path: "/dashboard/user/apply/writer",
-    icon: FaFeatherAlt,
-    roles: ["user"],
+    label: "Articles",
+    icon: FaFileAlt,
+    roles: ["admin", "writer"],
+    children: [
+      { label: "Draft", path: "/dashboard/articles/draft" },
+      { label: "Archive", path: "/dashboard/articles/archive" },
+      { label: "Publish", path: "/dashboard/articles/publish" },
+    ],
   },
   {
     label: "Articles",
-    path: "/dashboard/articles",
     icon: FaFileAlt,
-    roles: ["admin", "writer", "user"],
+    roles: ["user"],
+    path: "/dashboard/articles/publish",
   },
   {
     label: "Comments",
@@ -99,18 +105,25 @@ const DashboardShell = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(true);
+  const [articlesOpen, setArticlesOpen] = useState(
+    location.pathname.startsWith("/dashboard/articles"),
+  );
+
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  // Fetch real applications when component mounts
   useEffect(() => {
     fetchMyApplications();
-  }, []);
+  }, [fetchMyApplications]);
 
-  // Build real notifications from the user’s applications
+  useEffect(() => {
+    setArticlesOpen(location.pathname.startsWith("/dashboard/articles"));
+  }, [location.pathname]);
+
   const realNotifications = useMemo(() => {
     return applications.map((app) => {
       let icon, color, message;
       const roleName = app.role?.name ?? "Unknown role";
+
       switch (app.status) {
         case "PENDING":
           icon = FaClock;
@@ -132,6 +145,7 @@ const DashboardShell = () => {
           color = "bg-surface-container-high text-on-surface-variant";
           message = `Your ${roleName} application status: ${app.status}.`;
       }
+
       return {
         id: app.id,
         icon,
@@ -143,12 +157,10 @@ const DashboardShell = () => {
     });
   }, [applications]);
 
-  // Show red dot if there are any applications (unread – simplified)
   useEffect(() => {
     setHasNotifications(applications.length > 0);
   }, [applications]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -158,20 +170,21 @@ const DashboardShell = () => {
         setNotificationOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleBellClick = () => {
-    setHasNotifications(false); // dismiss the dot
+    setHasNotifications(false);
     setNotificationOpen((prev) => !prev);
   };
 
   const visibleNavigation = useMemo(
     () =>
       navigation.filter((item) => {
-        if (item.show) return item.show(user?.roles ?? []);
-        return hasAccess(user?.roles ?? [], item.roles);
+        if (item.roles) return hasAccess(user?.roles ?? [], item.roles);
+        return true;
       }),
     [user],
   );
@@ -197,9 +210,7 @@ const DashboardShell = () => {
   return (
     <>
       <div className="min-h-screen bg-background text-on-surface">
-        {/* TOPBAR */}
         <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-surface border-b border-outline-variant flex items-center justify-between px-6">
-          {/* Left side unchanged */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -207,6 +218,7 @@ const DashboardShell = () => {
             >
               <FaBars />
             </button>
+
             <NavLink
               to="/"
               className="flex items-center gap-3 text-xl font-semibold text-on-surface justify-self-start"
@@ -223,7 +235,6 @@ const DashboardShell = () => {
             </NavLink>
           </div>
 
-          {/* Search bar unchanged */}
           <div className="hidden md:block">
             <button
               onClick={() => setIsSearchOpen(true)}
@@ -235,14 +246,13 @@ const DashboardShell = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Notification bell with REAL notifications */}
             <div className="relative" ref={notificationRef}>
               <button onClick={handleBellClick} className="relative">
                 <FaBell />
                 {hasNotifications && (
                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-error"></span>
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-error opacity-75"></span>
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-error"></span>
                   </span>
                 )}
               </button>
@@ -298,10 +308,10 @@ const DashboardShell = () => {
               )}
             </div>
 
-            {/* Other buttons unchanged */}
             <button>
               <FaTh />
             </button>
+
             <div className="w-8 h-8 rounded-full overflow-hidden bg-surface-container">
               {profile?.avatarUrl ? (
                 <img
@@ -318,7 +328,6 @@ const DashboardShell = () => {
           </div>
         </header>
 
-        {/* SIDEBAR & CONTENT – unchanged from previous version */}
         <div className="flex pt-16">
           <aside
             className={`
@@ -326,30 +335,75 @@ const DashboardShell = () => {
               left-0 top-16 h-[calc(100vh-64px)]
               w-64 bg-surface-low border-r border-outline-variant z-40
               transition-transform
-              ${
-                mobileOpen
-                  ? "translate-x-0"
-                  : "-translate-x-full md:translate-x-0"
-              }
+              ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
             `}
           >
             <div className="p-4">
               <h2 className="font-serif text-lg">Editorial</h2>
-              {user?.roles.includes("admin") ||
-                (user?.roles.includes("writer") && (
-                  <p className="text-xs text-on-surface-variant">
-                    Internal Workspace
-                  </p>
-                ))}
+              {(user?.roles.includes("admin") ||
+                user?.roles.includes("writer")) && (
+                <p className="text-xs text-on-surface-variant">
+                  Internal Workspace
+                </p>
+              )}
             </div>
 
             <nav className="flex-1 px-3">
               {visibleNavigation.map((item) => {
                 const Icon = item.icon;
+
+                if (item.children?.length) {
+                  const isActiveGroup = item.children.some((child) =>
+                    location.pathname.startsWith(child.path),
+                  );
+
+                  return (
+                    <div key={item.label} className="mb-1">
+                      <button
+                        type="button"
+                        onClick={() => setArticlesOpen((v) => !v)}
+                        className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-colors ${
+                          isActiveGroup
+                            ? "bg-primary-container text-on-primary"
+                            : "text-on-surface-variant hover:bg-surface-container"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <Icon />
+                          <span>{item.label}</span>
+                        </span>
+                        <FaChevronDown
+                          className={`transition-transform ${articlesOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+
+                      {articlesOpen && (
+                        <div className="ml-4 mt-2 pl-3 border-l border-outline-variant space-y-1">
+                          {item.children.map((child) => (
+                            <NavLink
+                              key={child.path}
+                              to={child.path}
+                              className={({ isActive }) =>
+                                `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                                  isActive
+                                    ? "bg-primary text-on-primary"
+                                    : "text-on-surface-variant hover:bg-surface-container"
+                                }`
+                              }
+                            >
+                              <span>{child.label}</span>
+                            </NavLink>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <NavLink
                     key={item.path}
-                    to={item.path}
+                    to={item.path!}
                     end={item.path === "/dashboard"}
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors ${
