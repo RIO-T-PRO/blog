@@ -1,6 +1,13 @@
 // ProfileSettings.tsx
-import { useState } from "react";
-import { FaSave, FaGlobe, FaTrash, FaComment, FaHeart } from "react-icons/fa";
+import { useState, useEffect, useRef } from "react";
+import {
+  FaSave,
+  FaGlobe,
+  FaTrash,
+  FaComment,
+  FaHeart,
+  FaCamera,
+} from "react-icons/fa";
 import { useAuth } from "@/lib/context/auth-context";
 
 // ---------- Mock data ----------
@@ -45,7 +52,7 @@ const mockActivity = [
 ];
 
 const ProfileSettings = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, updateProfile, loading } = useAuth();
   const isWriterOrAdmin =
     user?.roles.includes("writer") || user?.roles.includes("admin");
 
@@ -54,7 +61,19 @@ const ProfileSettings = () => {
     email: user?.email ?? "",
     bio: profile?.bio ?? "",
     website: profile?.website ?? "",
+    avatarUrl: profile?.avatarUrl ?? "",
   });
+
+  // Keep form in sync with latest context data (e.g. after update)
+  useEffect(() => {
+    setForm({
+      name: profile?.username ?? user?.email?.split("@")[0] ?? "",
+      email: user?.email ?? "",
+      bio: profile?.bio ?? "",
+      website: profile?.website ?? "",
+      avatarUrl: profile?.avatarUrl ?? "",
+    });
+  }, [profile, user]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -62,10 +81,35 @@ const ProfileSettings = () => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Saving profile", form);
+    try {
+      await updateProfile({
+        username: form.name,
+        bio: form.bio,
+        website: form.website,
+        avatarUrl: form.avatarUrl,
+      });
+      // Optionally show success notification
+    } catch (error) {
+      console.error("Failed to update profile", error);
+      // Optionally show error notification
+    }
   };
+
+  // Auto-resize bio textarea
+  const bioRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResize = () => {
+    const el = bioRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  };
+
+  useEffect(() => {
+    autoResize();
+  }, [form.bio]);
 
   const interests = ["Technology", "Society", "Design", "Process", "Strategy"];
 
@@ -79,6 +123,41 @@ const ProfileSettings = () => {
           </h2>
         </div>
         <form onSubmit={handleSubmit} className="max-w-xl space-y-5">
+          {/* Avatar */}
+          <div>
+            <label className="block font-label-md text-label-md text-on-surface-variant mb-1">
+              Avatar
+            </label>
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-surface-container-high overflow-hidden border-2 border-outline-variant shrink-0">
+                {form.avatarUrl ? (
+                  <img
+                    src={form.avatarUrl}
+                    alt="Avatar preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-on-surface-variant">
+                    <FaCamera className="text-2xl" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <input
+                  type="url"
+                  name="avatarUrl"
+                  value={form.avatarUrl}
+                  onChange={handleChange}
+                  placeholder="https://example.com/avatar.jpg"
+                  className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-primary-fixed focus:border-primary-fixed text-body-md font-body-md text-on-surface transition-colors"
+                />
+                <p className="text-caption text-on-surface-variant mt-1">
+                  Paste a direct image URL (JPEG, PNG, etc.)
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block font-label-md text-label-md text-on-surface-variant mb-1">
               Full Name
@@ -104,18 +183,26 @@ const ProfileSettings = () => {
               className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-primary-fixed focus:border-primary-fixed text-body-md font-body-md text-on-surface transition-colors"
             />
           </div>
+
+          {/* Auto-resizing Bio */}
           <div>
             <label className="block font-label-md text-label-md text-on-surface-variant mb-1">
               Bio
             </label>
             <textarea
+              ref={bioRef}
               name="bio"
               value={form.bio}
-              onChange={handleChange}
-              rows={4}
-              className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-primary-fixed focus:border-primary-fixed text-body-md font-body-md text-on-surface transition-colors min-h-25"
+              onChange={(e) => {
+                handleChange(e);
+                autoResize();
+              }}
+              rows={1}
+              placeholder="Tell readers a little about yourself..."
+              className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-primary-fixed focus:border-primary-fixed text-body-md font-body-md text-on-surface transition-colors overflow-hidden resize-none"
             />
           </div>
+
           {isWriterOrAdmin && (
             <div>
               <label className="block font-label-md text-label-md text-on-surface-variant mb-1">
@@ -136,9 +223,16 @@ const ProfileSettings = () => {
           )}
           <button
             type="submit"
-            className="mt-2 px-6 py-2 bg-primary-container text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary transition-colors shadow-sm flex items-center gap-2"
+            disabled={loading}
+            className="mt-2 px-6 py-2 bg-primary-container text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FaSave className="text-sm" /> Save Changes
+            {loading ? (
+              "Saving..."
+            ) : (
+              <>
+                <FaSave className="text-sm" /> Save Changes
+              </>
+            )}
           </button>
         </form>
       </section>

@@ -7,6 +7,7 @@ const NotificationSettings = () => {
     emailNewsletter: false,
     inAppMentions: true,
     inAppUpdates: false,
+    appStatusChanges: true, // application status changes
   });
 
   const toggle = (key: keyof typeof prefs) => {
@@ -114,6 +115,31 @@ const NotificationSettings = () => {
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                   prefs.inAppUpdates ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Application status changes toggle */}
+          <div className="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant rounded-lg">
+            <div className="flex items-center gap-3">
+              <FaBell className="text-on-surface-variant" />
+              <div>
+                <p className="font-medium">Application status changes</p>
+                <p className="text-sm text-on-surface-variant">
+                  When your writer application is reviewed (approved/rejected)
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => toggle("appStatusChanges")}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                prefs.appStatusChanges ? "bg-primary" : "bg-outline-variant"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  prefs.appStatusChanges ? "translate-x-6" : "translate-x-1"
                 }`}
               />
             </button>

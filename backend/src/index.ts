@@ -8,7 +8,7 @@ import profileRoutes from "@/routes/profile.js";
 import roleRoutes from "@/routes/role.js";
 import articleRoutes from "@/routes/article.js";
 import commentRoutes from "@/routes/comment.js";
-import roleApplicationRoutes from "@/routes/role-application..js";
+import roleApplicationRoutes from "@/routes/role-application.js";
 
 dotenv.config();
 
@@ -41,7 +41,7 @@ app.use("/api/articles", articleRoutes);
 app.use("/api/comment", commentRoutes);
 
 // role application
-app.use("/api/application", roleApplicationRoutes);
+app.use("/api/role/applications", roleApplicationRoutes);
 
 const PORT = process.env.PORT || 8080;
 

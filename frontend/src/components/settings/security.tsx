@@ -1,4 +1,3 @@
-// SecuritySettings.tsx
 import { useState } from "react";
 import {
   FaLock,
@@ -9,7 +8,7 @@ import {
 import { useAuth } from "@/lib/context/auth-context";
 
 const SecuritySettings = () => {
-  const { logout } = useAuth();
+  const { deleteUser } = useAuth();
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -37,10 +36,9 @@ const SecuritySettings = () => {
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      // TODO: call API to delete account permanently
-      console.log("Account deleted");
-      await logout();
-      // navigate to home or goodbye page
+      await deleteUser(); // calls the API and clears auth state
+      // After successful deletion, the user will be automatically logged out
+      // and redirected (e.g., by a protected route or a useEffect that watches `user`)
     } catch (error) {
       console.error("Account deletion failed", error);
       setIsDeleting(false);

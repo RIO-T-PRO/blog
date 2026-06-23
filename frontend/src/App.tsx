@@ -1,10 +1,15 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { useState } from "react";
 
 import HomePage from "@/pages/home";
 import LoginPage from "@/pages/auth/signin";
 import SignupPage from "@/pages/auth/signup";
 import NotFoundPage from "@/pages/not-found";
-import PublicLayout from "./components/layout/public";
+
+import Navbar from "@/components/nav-bar";
+import Footer from "@/components/footer";
+import SearchModal from "@/components/ui/search-modal";
+
 import AuthLayout from "./components/layout/auth";
 import ProtectedRoute from "./components/protected-routes";
 import DashboardLayout from "./components/layout/dashboard";
@@ -12,47 +17,70 @@ import DashboardHome from "./components/dashboard";
 import ProfileSettings from "./components/settings/profile";
 import SecuritySettings from "./components/settings/security";
 import NotificationSettings from "./components/settings/notification";
+import ApplyWriterForm from "./components/user/apply-writer";
 
-export default function App() {
+const App = () => {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const location = useLocation();
+
+  // Paths where we hide the global Navbar + Footer
+  const authPaths = ["/signin", "/signup"];
+  const hideLayout =
+    authPaths.includes(location.pathname) ||
+    location.pathname.startsWith("/dashboard") ||
+    location.pathname === "*";
+
   return (
-    <Routes>
-      {/* PUBLIC */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/essays" element={<div>Essays</div>} />
-        <Route path="/culture" element={<div>Culture</div>} />
-        <Route path="/science" element={<div>Science</div>} />
-        <Route path="/archive" element={<div>Archive</div>} />
-      </Route>
+    <>
+      {!hideLayout && <Navbar onSearchOpen={() => setSearchOpen(true)} />}
 
-      {/* AUTH */}
-      <Route element={<AuthLayout />}>
-        <Route path="/signin" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-      </Route>
-
-      {/* DASHBOARD (protected) */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<DashboardHome />} />
-          <Route path="/dashboard/settings" element={<ProfileSettings />} />
-          <Route path="/dashboard/security" element={<SecuritySettings />} />
-          <Route
-            path="/dashboard/notifications"
-            element={<NotificationSettings />}
-          />
+      <Routes>
+        {/* PUBLIC */}
+        <Route>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/essays" element={<div>Essays</div>} />
+          <Route path="/culture" element={<div>Culture</div>} />
+          <Route path="/science" element={<div>Science</div>} />
+          <Route path="/archive" element={<div>Archive</div>} />
         </Route>
-      </Route>
 
-      {/* ADMIN ONLY */}
-      <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-        <Route
-          path="/dashboard/users"
-          // element={<UserManagementPage />}
-        />
-      </Route>
+        {/* AUTH */}
+        <Route element={<AuthLayout />}>
+          <Route path="/signin" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+        </Route>
 
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        {/* DASHBOARD (protected) */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<DashboardHome />} />
+            <Route
+              path="/dashboard/user/apply/writer"
+              element={<ApplyWriterForm />}
+            />
+            <Route path="/dashboard/settings" element={<ProfileSettings />} />
+            <Route path="/dashboard/security" element={<SecuritySettings />} />
+            <Route
+              path="/dashboard/notifications"
+              element={<NotificationSettings />}
+            />
+          </Route>
+        </Route>
+
+        {/* ADMIN ONLY */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route path="/dashboard/users" />
+        </Route>
+
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+
+      {!hideLayout && <Footer />}
+
+      {/* Global Search Modal – can be opened from anywhere */}
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+    </>
   );
-}
+};
+
+export default App;

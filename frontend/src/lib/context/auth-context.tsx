@@ -1,6 +1,20 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getProfile, logout, signin, signup } from "@/lib/api/auth";
-import type { User, Profile, SigninPayload, SignupPayload } from "@/types/auth";
+import {
+  deleteUser,
+  getProfile,
+  logout,
+  signin,
+  signup,
+  updateProfile,
+} from "@/lib/api/auth";
+import type {
+  User,
+  Profile,
+  SigninPayload,
+  SignupPayload,
+  UpdateProfilePayload,
+} from "@/types/auth";
+import { clearAccessToken } from "../api/refresh";
 
 type AuthContextType = {
   user: User | null;
@@ -10,6 +24,8 @@ type AuthContextType = {
   signin: (payload: SigninPayload) => Promise<void>;
   signup: (payload: SignupPayload) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
+  deleteUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -79,6 +95,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const handleUpdateProfile = async (payload: UpdateProfilePayload) => {
+    setLoading(true);
+    try {
+      const response = await updateProfile(payload);
+      setProfile(response.data.profile ?? null);
+    } catch (error) {
+      console.error("Update profile error:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!user) throw new Error("No authenticated user");
+    setLoading(true);
+    try {
+      await deleteUser(user.id);
+      // Account deleted – clear all state and tokens
+    } catch (error) {
+      console.error("Delete user error:", error);
+      throw error;
+    } finally {
+      // Always clean up local state, even on error (e.g., if token already invalid)
+      clearAccessToken();
+      setUser(null);
+      setProfile(null);
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -89,6 +136,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signin: handleSignin,
         signup: handleSignup,
         logout: handleLogout,
+        updateProfile: handleUpdateProfile,
+        deleteUser: handleDeleteUser,
       }}
     >
       {children}

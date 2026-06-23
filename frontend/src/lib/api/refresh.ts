@@ -1,6 +1,7 @@
 import { BASE_URL } from "./index";
 
 let accessToken: string | null = null;
+let refreshPromise: Promise<string> | null = null;
 
 export const getAccessToken = () => accessToken;
 
@@ -20,28 +21,38 @@ export const rawFetch = async (path: string, options: RequestInit = {}) => {
 };
 
 export const refreshAccessToken = async (): Promise<string> => {
-  const res = await rawFetch("/auth/refresh", {
-    method: "POST",
-  });
+  // If a refresh is already in progress, reuse it
+  if (refreshPromise) return refreshPromise;
 
-  const data = await res.json().catch(() => null);
+  refreshPromise = (async () => {
+    try {
+      const res = await rawFetch("/auth/refresh", { method: "POST" });
+      const data = await res.json().catch(() => null);
 
-  if (!res.ok) {
-    clearAccessToken();
-    const message =
-      data?.message ||
-      (typeof data?.error === "string" ? data.error : null) ||
-      `Request failed: ${res.status}`;
-    throw new Error(message);
-  }
+      if (!res.ok) {
+        clearAccessToken();
+        const message =
+          data?.message ||
+          (typeof data?.error === "string" ? data.error : null) ||
+          "Refresh token invalid";
+        throw new Error(message);
+      }
 
-  const token = data?.data?.accessToken as string | undefined;
+      const token = data?.data?.accessToken as string | undefined;
+      if (!token) {
+        clearAccessToken();
+        throw new Error("No access token returned from refresh endpoint");
+      }
 
-  if (!token) {
-    clearAccessToken();
-    throw new Error("No access token returned from refresh endpoint");
-  }
+      setAccessToken(token);
+      return token;
+    } catch (error) {
+      clearAccessToken();
+      throw error; // let the original request handle it
+    } finally {
+      refreshPromise = null; // clear the lock after success or failure
+    }
+  })();
 
-  setAccessToken(token);
-  return token;
+  return refreshPromise;
 };
