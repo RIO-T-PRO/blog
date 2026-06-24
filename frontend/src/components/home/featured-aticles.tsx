@@ -10,18 +10,17 @@ export const FeaturedArticlesSection = () => {
   const { articles, fetchArticles, loading } = useArticle();
 
   useEffect(() => {
-    fetchArticles({ status: "PUBLISHED", take: 5 }); // fetch the latest 5
+    fetchArticles({ status: "PUBLISHED", take: 5 });
   }, [fetchArticles]);
 
   if (loading) return <p className="text-center py-10">Loading picks...</p>;
-
   if (articles.length === 0)
     return <p className="text-center py-10">No articles yet.</p>;
 
   const featured = mapArticleToCard(articles[0], "featured");
-  const compact = articles
+  const compactArticles = articles
     .slice(1)
-    .map((article) => mapArticleToCard(article, "compact"));
+    .map((a) => mapArticleToCard(a, "compact"));
 
   return (
     <section className="py-12">
@@ -41,7 +40,7 @@ export const FeaturedArticlesSection = () => {
           <div className="md:col-span-2">
             <ArticleCard {...featured} />
           </div>
-          {compact.map((cardProps, i) => (
+          {compactArticles.map((cardProps, i) => (
             <ArticleCard key={articles[i + 1]?.id} {...cardProps} />
           ))}
         </div>

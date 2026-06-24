@@ -6,9 +6,9 @@ import type {
 } from "@/types/articles";
 import apiFetch from "./index";
 
-export async function createArticle(
+export const createArticle = async (
   payload: CreateArticlePayload,
-): Promise<Article> {
+): Promise<Article> => {
   const response = await apiFetch<{
     success: true;
     message: string;
@@ -18,11 +18,11 @@ export async function createArticle(
     body: JSON.stringify(payload),
   });
   return response.data.data;
-}
+};
 
-export async function getArticles(
+export const getArticles = async (
   params?: ArticleQueryParams,
-): Promise<Article[]> {
+): Promise<Article[]> => {
   const query = params
     ? "?" +
       new URLSearchParams(
@@ -38,21 +38,22 @@ export async function getArticles(
     data: { data: Article[] };
   }>(`/articles${query}`);
   return response.data.data;
-}
+};
 
-export async function getArticle(articleId: string): Promise<Article> {
+export const getArticle = async (articleId: string): Promise<Article> => {
   const response = await apiFetch<{
     success: true;
     message: string;
-    article: Article;
+    data: { article: Article };
   }>(`/articles/${articleId}`);
-  return response.article;
-}
 
-export async function updateArticle(
+  return response.data.article;
+};
+
+export const updateArticle = async (
   articleId: string,
   payload: UpdateArticlePayload,
-): Promise<Article> {
+): Promise<Article> => {
   // Remove undefined values to avoid overwriting optional fields with undefined
   const body = Object.fromEntries(
     Object.entries(payload).filter(([_, v]) => v !== undefined),
@@ -67,8 +68,8 @@ export async function updateArticle(
     body: JSON.stringify(body),
   });
   return response.updated;
-}
+};
 
-export async function deleteArticle(articleId: string): Promise<void> {
+export const deleteArticle = async (articleId: string): Promise<void> => {
   await apiFetch(`/articles/${articleId}`, { method: "DELETE" });
-}
+};

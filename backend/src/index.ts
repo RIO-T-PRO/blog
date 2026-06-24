@@ -38,7 +38,7 @@ app.use("/api/user", profileRoutes);
 app.use("/api/articles", articleRoutes);
 
 // comment
-app.use("/api/comment", commentRoutes);
+app.use("/api/comments", commentRoutes);
 
 // role application
 app.use("/api/role/applications", roleApplicationRoutes);

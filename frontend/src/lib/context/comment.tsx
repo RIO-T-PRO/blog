@@ -37,13 +37,11 @@ export const CommentProvider = ({
   const [error, setError] = useState<string | null>(null);
 
   const loadComments = useCallback(async () => {
-    if (!articleId) return;
+    if (!articleId || articleId === "undefined") return;
     setLoading(true);
     setError(null);
     try {
-      // getComments now returns Comment[] directly
       const data = await getComments(articleId);
-      console.log(data);
       setComments(data);
     } catch (err) {
       const message =

@@ -33,6 +33,20 @@ export const createArticle = async (
 export const getArticleById = async (id: string) => {
   return prisma.article.findUnique({
     where: { id },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          profile: {
+            select: {
+              username: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      },
+    },
   });
 };
 

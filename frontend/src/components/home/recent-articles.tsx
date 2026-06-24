@@ -9,11 +9,10 @@ const LatestReadingSection = () => {
   const { articles, fetchArticles, loading } = useArticle();
 
   useEffect(() => {
-    fetchArticles({ status: "PUBLISHED", take: 6 }); // adjust take as needed
+    fetchArticles({ status: "PUBLISHED", take: 6 });
   }, [fetchArticles]);
 
   if (loading) return <p className="text-center py-10">Loading latest...</p>;
-
   if (articles.length === 0)
     return <p className="text-center py-10">No published articles yet.</p>;
 
@@ -22,12 +21,10 @@ const LatestReadingSection = () => {
       <Container>
         <SectionHeading title="Latest Reading" />
         <div className="mt-8 flex flex-col space-y-6">
-          {articles.map((article) => (
-            <ArticleListItem
-              key={article.id}
-              {...mapArticleToCard(article, "compact")}
-            />
-          ))}
+          {articles.map((article) => {
+            const cardProps = mapArticleToCard(article, "compact");
+            return <ArticleListItem key={article.id} {...cardProps} />;
+          })}
         </div>
       </Container>
     </section>

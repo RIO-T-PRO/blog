@@ -24,6 +24,7 @@ import WriterEditor from "@/components/article/writer-editor";
 import DraftArticlesPage from "@/components/article/draf";
 import ArchiveArticlesPage from "@/components/article/archive";
 import PublishedArticlesPage from "@/components/article/published";
+import DashboardArticleDetail from "./components/dashboard/article-details";
 
 const App = () => {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -84,33 +85,32 @@ const App = () => {
                 path="/dashboard/articles"
                 element={<Navigate to="draft" replace />}
               />
-
               <Route
                 path="/dashboard/articles/draft"
                 element={<DraftArticlesPage />}
               />
-
               <Route
                 path="/dashboard/articles/archive"
                 element={<ArchiveArticlesPage />}
               />
-
               <Route
                 path="/dashboard/articles/published"
                 element={<PublishedArticlesPage />}
               />
-
               {/* Create article */}
               <Route
                 path="/dashboard/articles/new"
                 element={<WriterEditor />}
               />
-
               {/* Edit article */}
               <Route
                 path="/dashboard/articles/:articleId/edit"
                 element={<WriterEditor />}
               />
+              <Route
+                path="/dashboard/articles/:articleId"
+                element={<DashboardArticleDetail />}
+              />{" "}
             </Route>
           </Route>
         </Route>

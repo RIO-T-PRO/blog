@@ -21,6 +21,7 @@ export const mapArticleToCard = (
 
   return {
     variant,
+    articleId: article.id,
     title: article.title,
     excerpt: article.excerpt ?? "",
     category,
