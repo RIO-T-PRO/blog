@@ -1,61 +1,47 @@
-import { articles } from "@/types/articles";
+import { useEffect } from "react";
+import { useArticle } from "@/lib/context/article";
 import { Container } from "../layout/container";
 import SectionHeading from "../layout/section-heading";
 import { FaChevronRight } from "react-icons/fa";
 import ArticleCard from "../article/article-card";
+import { mapArticleToCard } from "@/lib/mappers/article-card";
 
 export const FeaturedArticlesSection = () => {
-  const featured = articles.find((a) => a.variant === "featured");
+  const { articles, fetchArticles, loading } = useArticle();
 
-  const compact = articles.filter((a) => a.variant === "compact");
+  useEffect(() => {
+    fetchArticles({ status: "PUBLISHED", take: 5 });
+  }, [fetchArticles]);
+
+  if (loading) return <p className="text-center py-10">Loading picks...</p>;
+  if (articles.length === 0)
+    return <p className="text-center py-10">No articles yet.</p>;
+
+  const featured = mapArticleToCard(articles[0], "featured");
+  const compactArticles = articles
+    .slice(1)
+    .map((a) => mapArticleToCard(a, "compact"));
 
   return (
-    <section className="py-16">
+    <section className="py-12">
       <Container>
         <SectionHeading
           title="Editor's Picks"
           action={
             <a
-              href="#"
+              href="/archive"
               className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
             >
               View all <FaChevronRight size={12} />
             </a>
           }
         />
-
         <div className="mt-10 grid gap-6 md:grid-cols-2">
-          {/* Featured (safe render) */}
-          {featured && (
-            <div className="md:col-span-2">
-              <ArticleCard
-                variant="featured"
-                title={featured.title}
-                excerpt={featured.excerpt}
-                category={featured.category}
-                readTime={featured.readTime}
-                author={featured.author}
-                date={featured.date}
-                image={featured.image}
-                avatar={featured.avatar}
-              />
-            </div>
-          )}
-
-          {/* Compact cards */}
-          {compact.map((article) => (
-            <ArticleCard
-              key={article.id}
-              variant="compact"
-              title={article.title}
-              excerpt={article.excerpt}
-              category={article.category}
-              readTime={article.readTime}
-              author={article.author}
-              date={article.date}
-              image={article.image}
-              avatar={article.avatar}
-            />
+          <div className="md:col-span-2">
+            <ArticleCard {...featured} />
+          </div>
+          {compactArticles.map((cardProps, i) => (
+            <ArticleCard key={articles[i + 1]?.id} {...cardProps} />
           ))}
         </div>
       </Container>

@@ -3,6 +3,7 @@ import {
   createCommentController,
   deleteCommentController,
   getCommentsController,
+  updateCommentController,
 } from "@/controllers/comment.js";
 import { authenticate } from "@/middlewares/auth.js";
 import { requireRole } from "@/middlewares/role-require.js";
@@ -17,21 +18,26 @@ import express from "express";
 
 const router = express.Router();
 
+router.use(authenticate);
+
 router.get(
   "/:articleId",
   validate(ArticleIdParamSchema, "params"),
   getCommentsController,
 );
 
-router.use(authenticate);
-
-router.get("/", validate(CreateCommentSchema, "body"), createCommentController);
+router.get(
+  "/:articleId",
+  validate(ArticleIdParamSchema, "params"),
+  validate(CreateCommentSchema, "body"),
+  createCommentController,
+);
 
 router.post(
   "/:commentId",
   validate(CommentIdSchema, "params"),
   validate(UpdateCommentSchema, "body"),
-  updateArticleController,
+  updateCommentController,
 );
 
 router.delete(

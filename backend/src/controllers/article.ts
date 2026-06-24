@@ -50,18 +50,15 @@ export const getArticlesController = async (req: Request, res: Response) => {
     const { status, search, authorId, skip, take } = req.query as ArticleQuery;
     const user = req.user;
 
-    const isAdminOrWriter = user?.roles?.some((role) =>
+    const requestedStatus = status
+      ? (String(status) as ArticleStatus)
+      : undefined;
+    const isPrivileged = user?.roles?.some((role) =>
       ["admin", "writer"].includes(role),
     );
 
-    const statusFilter = isAdminOrWriter
-      ? status
-        ? (String(status) as ArticleStatus)
-        : undefined
-      : "PUBLISHED"; // forced to published for non‑privileged viewers
-
     const articles = await listArticles({
-      status: statusFilter,
+      status: isPrivileged ? requestedStatus : "PUBLISHED",
       search: search ? String(search) : undefined,
       authorId: authorId ? String(authorId) : undefined,
       skip: skip ? Number(skip) : 0,
@@ -85,7 +82,7 @@ export const getArticleController = async (req: Request, res: Response) => {
       return resError(res, "Article not found", 404);
     }
 
-    return resSuccess(res, { data: article }, "Article fetched successfully");
+    return resSuccess(res, { article }, "Article fetched successfully");
   } catch (error) {
     console.error("Get article error", error);
     return resError(res, "Internal server error", 500);
@@ -121,7 +118,7 @@ export const updateArticleController = async (req: Request, res: Response) => {
       slug: body.slug,
     });
 
-    return resSuccess(res, { data: updated }, "Article updated successfully");
+    return resSuccess(res, { updated }, "Article updated successfully");
   } catch (error) {
     console.error("Update article error", error);
     return resError(res, "Internal server error", 500);

@@ -18,16 +18,16 @@ import express from "express";
 
 const router = express.Router();
 
+router.use(authenticate);
+
 router.get(
   "/:articleId",
   validate(ArticleIdParamSchema, "params"),
   getArticleController,
 );
+
 router.get("/", validate(articleQuerySchema, "query"), getArticlesController);
 
-router.use(authenticate);
-
-// article
 router.post(
   "/",
   validate(CreateArticleSchema, "body"),

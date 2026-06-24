@@ -1,4 +1,3 @@
-// DashboardHome.tsx
 import { useAuth } from "@/lib/context/auth-context";
 import { FaCommentDots, FaBookmark } from "react-icons/fa";
 
