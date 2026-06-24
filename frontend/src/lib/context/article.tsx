@@ -17,7 +17,7 @@ import type {
   ArticleQueryParams,
   CreateArticlePayload,
   UpdateArticlePayload,
-} from "@/types/articles"; // ✅ correct import
+} from "@/types/articles";
 
 type ArticleContextType = {
   articles: Article[];

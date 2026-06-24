@@ -15,8 +15,9 @@ const PublishedArticlesPage = () => {
   const published = articles.filter((a) => a.status === "PUBLISHED");
 
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface p-6">
+    <div className=" bg-surface p-6">
       <h2 className="text-xl font-semibold mb-4">Published Articles</h2>
+
       {published.length === 0 ? (
         <p>No published articles.</p>
       ) : (
@@ -24,17 +25,29 @@ const PublishedArticlesPage = () => {
           {published.map((article) => (
             <li
               key={article.id}
-              className="p-3 bg-surface-container-lowest rounded-lg"
+              className="flex items-center justify-between gap-4 p-4 bg-surface-container-lowest rounded-lg border border-outline-variant"
             >
+              <div className="min-w-0 flex-1">
+                <Link
+                  to={`/dashboard/articles/${article.id}/edit`}
+                  className="font-medium hover:underline block truncate"
+                >
+                  {article.title}
+                </Link>
+
+                {article.excerpt && (
+                  <p className="mt-1 text-sm text-on-surface-variant max-h-10 overflow-hidden">
+                    {article.excerpt}
+                  </p>
+                )}
+              </div>
+
               <Link
                 to={`/dashboard/articles/${article.id}/edit`}
-                className="font-medium hover:underline"
+                className="shrink-0 px-3 py-2 rounded-lg bg-primary-container text-on-primary-container text-sm font-medium hover:opacity-90 transition-opacity"
               >
-                {article.title}
+                Edit
               </Link>
-              <p className="text-sm text-on-surface-variant">
-                {article.excerpt}
-              </p>
             </li>
           ))}
         </ul>

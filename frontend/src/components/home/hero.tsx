@@ -3,7 +3,7 @@ import { Container } from "../layout/container";
 
 export const HeroSection = () => {
   return (
-    <section className="py-16 text-center sm:py-20 lg:py-24">
+    <section className="py-8 text-center sm:py-12 lg:py-16">
       <Container>
         <div className="mx-auto max-w-3xl space-y-8">
           <h1 className="text-4xl font-bold leading-tight text-on-surface sm:text-5xl lg:text-6xl">

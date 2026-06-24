@@ -24,7 +24,7 @@ export const FeaturedArticlesSection = () => {
     .map((article) => mapArticleToCard(article, "compact"));
 
   return (
-    <section className="py-16">
+    <section className="py-12">
       <Container>
         <SectionHeading
           title="Editor's Picks"

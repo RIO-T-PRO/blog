@@ -50,18 +50,15 @@ export const getArticlesController = async (req: Request, res: Response) => {
     const { status, search, authorId, skip, take } = req.query as ArticleQuery;
     const user = req.user;
 
-    const isAdminOrWriter = user?.roles?.some((role) =>
+    const requestedStatus = status
+      ? (String(status) as ArticleStatus)
+      : undefined;
+    const isPrivileged = user?.roles?.some((role) =>
       ["admin", "writer"].includes(role),
     );
 
-    const statusFilter = isAdminOrWriter
-      ? status
-        ? (String(status) as ArticleStatus)
-        : undefined
-      : "PUBLISHED"; // forced to published for non‑privileged viewers
-
     const articles = await listArticles({
-      status: statusFilter,
+      status: isPrivileged ? requestedStatus : "PUBLISHED",
       search: search ? String(search) : undefined,
       authorId: authorId ? String(authorId) : undefined,
       skip: skip ? Number(skip) : 0,
