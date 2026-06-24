@@ -14,7 +14,9 @@ createRoot(document.getElementById("root")!).render(
       <AuthProvider>
         <RoleApplicationProvider>
           <ArticleProvider>
-            <App />
+            <ArticleProvider>
+              <App />
+            </ArticleProvider>
           </ArticleProvider>
         </RoleApplicationProvider>
       </AuthProvider>

@@ -219,7 +219,7 @@ const WriterEditor = () => {
   return (
     <main className="flex-1 flex flex-col min-h-screen bg-background">
       {successMessage && (
-        <div className="fixed top-24 right-6 z-[100]">
+        <div className="fixed top-24 right-6 z-100">
           <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-xl min-w-80 max-w-md">
             <div className="flex-1">
               <p className="text-sm font-medium text-emerald-800">

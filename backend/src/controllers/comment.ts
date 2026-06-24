@@ -28,12 +28,7 @@ export const createCommentController = async (req: Request, res: Response) => {
       parentId: parentId ?? null,
     });
 
-    return resSuccess(
-      res,
-      { data: comment },
-      "Comment created successfully",
-      201,
-    );
+    return resSuccess(res, { comment }, "Comment created successfully", 201);
   } catch (error) {
     console.error("Create comment error", error);
     return resError(res, "Internal server error", 500);
@@ -46,7 +41,7 @@ export const getCommentsController = async (req: Request, res: Response) => {
 
     const comments = await listCommentsByArticle(articleId);
 
-    return resSuccess(res, { data: comments }, "Comments fetched successfully");
+    return resSuccess(res, { comments }, "Comments fetched successfully");
   } catch (error) {
     console.error("Get comments error", error);
     return resError(res, "Internal server error", 500);
@@ -73,7 +68,7 @@ export const updateCommentController = async (req: Request, res: Response) => {
 
     const updated = await updateComment(comment.id, { content });
 
-    return resSuccess(res, { data: updated }, "Comment updated successfully");
+    return resSuccess(res, { updated }, "Comment updated successfully");
   } catch (error) {
     console.error("Update comment error", error);
     return resError(res, "Internal server error", 500);
